@@ -348,7 +348,7 @@ body {
 /* Marcação no modal */
 .day-mark-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.75rem;
     padding: 0.75rem;
     border-radius: 0.5rem;
@@ -366,6 +366,7 @@ body {
     height: 16px;
     border-radius: 4px;
     flex-shrink: 0;
+    margin-top: 2px;
 }
 
 .day-mark-item .mark-info {
@@ -386,6 +387,19 @@ body {
     border-radius: 50%;
     background-color: #d1d5db;
     flex-shrink: 0;
+}
+
+/* Botão de adicionar anotação */
+.add-note-btn {
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    opacity: 0.6;
+    transition: opacity var(--transition-fast);
+}
+
+.add-note-btn:hover {
+    opacity: 1;
+    background-color: #e5e7eb;
 }
 
 

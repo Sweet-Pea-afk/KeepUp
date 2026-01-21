@@ -248,7 +248,7 @@ export class DataManager {
         this.loadMarksFromStorage();
     }
 
-    addMark(date, colorId) {
+    addMark(date, colorId, note = null) {
         if (!date || !colorId) throw new Error('Data e ID da cor são obrigatórios');
 
         const dateKey = this.getDateKey(date);
@@ -261,10 +261,48 @@ export class DataManager {
         const color = this.userColors.get(colorId);
         if (!color) throw new Error('Cor não encontrada');
 
-        const mark = { colorId, colorName: color.name, colorValue: color.color, createdAt: new Date().toISOString() };
+        const mark = { 
+            colorId, 
+            colorName: color.name, 
+            colorValue: color.color, 
+            note: note || null,
+            createdAt: new Date().toISOString() 
+        };
         marksForDate.set(colorId, mark);
         this.saveMarksToStorage();
         return mark;
+    }
+
+    /**
+     * Define ou atualiza a anotação de uma marcação
+     * @param {Date} date - Data
+     * @param {string} colorId - ID da cor
+     * @param {string|null} note - Anotação (null para remover)
+     * @returns {boolean} Sucesso
+     */
+    setMarkNote(date, colorId, note) {
+        const dateKey = this.getDateKey(date);
+        const marksForDate = this.dayMarks.get(dateKey);
+        if (!marksForDate || !marksForDate.has(colorId)) return false;
+        
+        const mark = marksForDate.get(colorId);
+        mark.note = note;
+        mark.updatedAt = new Date().toISOString();
+        this.saveMarksToStorage();
+        return true;
+    }
+
+    /**
+     * Obtém a anotação de uma marcação
+     * @param {Date} date - Data
+     * @param {string} colorId - ID da cor
+     * @returns {string|null} Anotação ou null
+     */
+    getMarkNote(date, colorId) {
+        const dateKey = this.getDateKey(date);
+        const marksForDate = this.dayMarks.get(dateKey);
+        if (!marksForDate || !marksForDate.has(colorId)) return null;
+        return marksForDate.get(colorId).note;
     }
 
     getMarksForDate(date) {

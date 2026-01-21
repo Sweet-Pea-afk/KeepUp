@@ -8,6 +8,7 @@ export class UIManager {
     constructor() {
         this.selectedColorId = null;
         this.selectedDate = null;
+        this.noteColorId = null; // Cor selecionada para adicionar anotação
         this.initElements();
         this.bindEvents();
     }
@@ -45,6 +46,10 @@ export class UIManager {
         // Colorwheel
         this.colorWheel = getEl('colorWheel');
         this.colorWheelPreview = getEl('colorWheelPreview');
+        // Anotações
+        this.noteInput = getEl('noteInput');
+        this.saveNoteBtn = getEl('saveNoteBtn');
+        this.addNoteSection = getEl('addNoteSection');
     }
 
     bindEvents() {
@@ -63,6 +68,12 @@ export class UIManager {
         
         // Evento do Colorwheel
         this.colorWheel?.addEventListener('input', (e) => this.handleColorWheelChange(e));
+
+        // Evento de salvar anotação
+        this.saveNoteBtn?.addEventListener('click', () => this.saveNote());
+        this.noteInput?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.saveNote();
+        });
 
         // Listener direto no grid para capturar cliques nos dias
         this.calendarGrid?.addEventListener('click', (e) => {
@@ -306,19 +317,62 @@ export class UIManager {
         }
     }
 
+    /**
+     * Salva uma anotação para a cor selecionada
+     */
+    saveNote() {
+        if (!this.selectedDate || !this.noteColorId) return;
+        const note = this.noteInput.value.trim();
+        dataManager.setMarkNote(this.selectedDate, this.noteColorId, note || null);
+        this.noteInput.value = '';
+        this.noteColorId = null;
+        this.renderDayMarks(dataManager.getMarksForDate(this.selectedDate));
+    }
+
     renderDayMarks(marks) {
         if (marks.length === 0) {
             this.dayMarkers.innerHTML = '';
             this.dayEmpty.classList.remove('hidden');
+            this.addNoteSection?.classList.add('hidden');
             return;
         }
         this.dayEmpty.classList.add('hidden');
+
+        // Mostra seção de anotações se houver pelo menos uma marcação
+        this.addNoteSection?.classList.remove('hidden');
+
         this.dayMarkers.innerHTML = marks.map(mark => `
             <div class="day-mark-item" style="border-left: 4px solid ${mark.colorValue}">
                 <span class="mark-color" style="background-color: ${mark.colorValue}"></span>
-                <span class="mark-name" style="color: ${mark.colorValue}">${mark.colorName}</span>
+                <div class="mark-info flex-1">
+                    <span class="mark-name" style="color: ${mark.colorValue}">${mark.colorName}</span>
+                    ${mark.note ? `<p class="text-xs text-gray-500 mt-1">📝 ${mark.note}</p>` : ''}
+                </div>
+                <button class="add-note-btn text-xs text-primary-600 hover:text-primary-800 ml-2" 
+                    data-color-id="${mark.colorId}" title="Adicionar anotação">
+                    ✏️
+                </button>
             </div>
         `).join('');
+
+        // Bind eventos para botões de anotação
+        this.dayMarkers.querySelectorAll('.add-note-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openNoteForMark(btn.dataset.colorId);
+            });
+        });
+    }
+
+    /**
+     * Abre campo de anotação para uma marcação específica
+     */
+    openNoteForMark(colorId) {
+        this.noteColorId = colorId;
+        const currentNote = dataManager.getMarkNote(this.selectedDate, colorId);
+        this.noteInput.value = currentNote || '';
+        this.noteInput.focus();
+        this.noteInput.placeholder = 'Digite uma anotação para esta marcação...';
     }
 
     // Navegação
