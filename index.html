@@ -207,24 +207,35 @@
                                 <input type="text" id="colorName" required maxlength="20"
                                     class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                                     placeholder="Nome da cor">
+                                <!-- Colorwheel Nativo -->
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex-shrink-0">
+                                        <input type="color" id="colorWheel" 
+                                            class="w-12 h-12 p-0 border-0 rounded-lg cursor-pointer"
+                                            value="#3b82f6">
+                                        <div id="colorWheelPreview" class="absolute inset-0 pointer-events-none rounded-lg border-2 border-gray-300"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500">Selecione uma cor usando o colorwheel ou escolha uma predefinida:</p>
+                                </div>
+                                <!-- Cores Predefinidas -->
                                 <div class="flex flex-wrap gap-2" id="newColorPicker">
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-red-500" data-color="red"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-orange-500" data-color="orange"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-amber-500" data-color="amber"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-yellow-500" data-color="yellow"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-lime-500" data-color="lime"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-green-500" data-color="green"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-emerald-500" data-color="emerald"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-teal-500" data-color="teal"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-cyan-500" data-color="cyan"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-sky-500" data-color="sky"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-blue-500" data-color="blue"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-indigo-500" data-color="indigo"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-violet-500" data-color="violet"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-purple-500" data-color="purple"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-pink-500" data-color="pink"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-rose-500" data-color="rose"></button>
-                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-slate-500" data-color="slate"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-red-500" data-color="red" title="Vermelho"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-orange-500" data-color="orange" title="Laranja"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-amber-500" data-color="amber" title="Âmbar"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-yellow-500" data-color="yellow" title="Amarelo"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-lime-500" data-color="lime" title="Lima"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-green-500" data-color="green" title="Verde"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-emerald-500" data-color="emerald" title="Esmeralda"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-teal-500" data-color="teal" title="Ciano Escuro"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-cyan-500" data-color="cyan" title="Ciano"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-sky-500" data-color="sky" title="Azul Céu"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-blue-500" data-color="blue" title="Azul"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-indigo-500" data-color="indigo" title="Índigo"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-violet-500" data-color="violet" title="Violeta"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-purple-500" data-color="purple" title="Roxo"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-pink-500" data-color="pink" title="Rosa"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-rose-500" data-color="rose" title="Rosa Escuro"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-slate-500" data-color="slate" title="Cinza"></button>
                                 </div>
                                 <input type="hidden" id="newColorValue" required>
                                 <button type="submit" class="w-full py-2 px-4 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors">Adicionar Cor</button>

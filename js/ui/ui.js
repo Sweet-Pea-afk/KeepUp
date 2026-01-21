@@ -42,6 +42,9 @@ export class UIManager {
         this.closeModalBtn = getEl('closeModal');
         this.modalBackdrop = getEl('modalBackdrop');
         this.removeAllMarksBtn = getEl('removeAllMarksBtn');
+        // Colorwheel
+        this.colorWheel = getEl('colorWheel');
+        this.colorWheelPreview = getEl('colorWheelPreview');
     }
 
     bindEvents() {
@@ -57,6 +60,9 @@ export class UIManager {
         this.closeModalBtn?.addEventListener('click', () => this.closeDayModal());
         this.modalBackdrop?.addEventListener('click', () => this.closeDayModal());
         this.removeAllMarksBtn?.addEventListener('click', () => this.removeAllMarks());
+        
+        // Evento do Colorwheel
+        this.colorWheel?.addEventListener('input', (e) => this.handleColorWheelChange(e));
 
         document.addEventListener('click', (e) => {
             const dayCell = e.target.closest('.calendar-day');
@@ -139,6 +145,13 @@ export class UIManager {
         this.colorForm.reset();
         this.newColorValueInput.value = '';
         this.updateNewColorSelection();
+        // Inicializa colorwheel
+        if (this.colorWheel) {
+            this.colorWheel.value = '#3b82f6';
+            if (this.colorWheelPreview) {
+                this.colorWheelPreview.style.backgroundColor = '#3b82f6';
+            }
+        }
         this.colorsModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
         setTimeout(() => this.colorNameInput?.focus(), 100);
@@ -190,6 +203,20 @@ export class UIManager {
         const button = event.target.closest('.color-option');
         if (!button) return;
         this.newColorValueInput.value = button.dataset.color;
+        this.updateNewColorSelection();
+    }
+
+    /**
+     * Trata mudança no colorwheel nativo
+     */
+    handleColorWheelChange(event) {
+        const colorValue = event.target.value;
+        this.newColorValueInput.value = colorValue;
+        // Atualiza preview
+        if (this.colorWheelPreview) {
+            this.colorWheelPreview.style.backgroundColor = colorValue;
+        }
+        // Limpa seleção das cores predefinidas
         this.updateNewColorSelection();
     }
 

@@ -404,6 +404,32 @@ body {
     transform: scale(1.15);
 }
 
+/* Colorwheel Nativo */
+#colorWheel {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+#colorWheel::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+#colorWheel::-webkit-color-swatch {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+#colorWheel::-moz-color-swatch {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+#colorWheelPreview {
+    border-radius: 0.5rem;
+    transition: background-color var(--transition-fast);
+}
+
 /* ===========================
    Responsividade
    =========================== */
