@@ -177,6 +177,8 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    /* Permite que cliques passem para a célula pai */
+    pointer-events: none;
 }
 
 /* Seção colorida do marcador */

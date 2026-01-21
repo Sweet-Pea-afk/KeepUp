@@ -64,7 +64,8 @@ export class UIManager {
         // Evento do Colorwheel
         this.colorWheel?.addEventListener('input', (e) => this.handleColorWheelChange(e));
 
-        document.addEventListener('click', (e) => {
+        // Listener direto no grid para capturar cliques nos dias
+        this.calendarGrid?.addEventListener('click', (e) => {
             const dayCell = e.target.closest('.calendar-day');
             if (dayCell && dayCell.hasAttribute('data-date')) {
                 // Corrige problema de timezone criando data a partir dos componentes
@@ -84,19 +85,20 @@ export class UIManager {
     }
 
     handleDayClick(date) {
-        const selectedColorId = this.selectedColorId;
-        if (selectedColorId) {
+        // Se há uma cor selecionada, adiciona/remove marcação
+        if (this.selectedColorId) {
             try {
-                if (dataManager.hasMark(date, selectedColorId)) {
-                    dataManager.removeMark(date, selectedColorId);
+                if (dataManager.hasMark(date, this.selectedColorId)) {
+                    dataManager.removeMark(date, this.selectedColorId);
                 } else {
-                    dataManager.addMark(date, selectedColorId);
+                    dataManager.addMark(date, this.selectedColorId);
                 }
                 calendarManager.refresh();
             } catch (error) {
                 alert(error.message);
             }
         } else {
+            // Se nenhuma cor está selecionada, abre o modal de detalhes
             this.openDayModal(date);
         }
     }
