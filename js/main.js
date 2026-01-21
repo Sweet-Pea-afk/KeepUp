@@ -148,16 +148,16 @@ class CalendarApp {
         this.showLoading(true);
 
         try {
-            // Tenta Promise primeiro, com fallback para async/await
-            const dados = await dataManager.loadHolidaysWithPromise(year)
-                .catch(() => dataManager.loadHolidaysWithAsync(year));
-
+            // Usa o método com fallback integrado
+            const dados = await dataManager.loadHolidaysWithFallback(year);
+            
             if (dados && dados.length > 0) {
-                dataManager.setHolidays(dados);
-                console.log('Feriados carregados:', dados.length);
+                console.log(`✅ ${dados.length} feriados carregados para ${year}`);
+            } else {
+                console.log('⚠️ Nenhum feriado encontrado');
             }
         } catch (error) {
-            console.warn('Não foi possível carregar feriados:', error.message);
+            console.error('❌ Erro ao carregar feriados:', error.message);
         } finally {
             this.showLoading(false);
         }

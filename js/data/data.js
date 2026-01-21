@@ -427,6 +427,28 @@ export class DataManager {
     // Feriados (API e Visualização)
     // ===========================
 
+    // Feriados estáticos como fallback (Brasil - 2025)
+    FALLBACK_HOLIDAYS_2025 = [
+        { date: "2025-01-01", name: "Confraternização Universal", type: "national" },
+        { date: "2025-03-01", name: "Carnaval", type: "national" },
+        { date: "2025-03-02", name: "Carnaval", type: "national" },
+        { date: "2025-03-03", name: "Quarta-feira de Cinzas", type: "national" },
+        { date: "2025-04-18", name: "Sexta-feira Santa", type: "national" },
+        { date: "2025-04-20", name: "Páscoa", type: "national" },
+        { date: "2025-04-21", name: "Tiradentes", type: "national" },
+        { date: "2025-05-01", name: "Dia do Trabalho", type: "national" },
+        { date: "2025-09-07", name: "Independência do Brasil", type: "national" },
+        { date: "2025-10-12", name: "Nossa Senhora Aparecida", type: "national" },
+        { date: "2025-10-15", name: "Dia do Professor", type: "optional" },
+        { date: "2025-10-20", name: "Dia do Policial Civil", type: "optional" },
+        { date: "2025-11-02", name: "Finados", type: "national" },
+        { date: "2025-11-15", name: "Proclamação da República", type: "national" },
+        { date: "2025-11-20", name: "Consciência Negra", type: "national" },
+        { date: "2025-12-24", name: "Véspera de Natal", type: "optional" },
+        { date: "2025-12-25", name: "Natal", type: "national" },
+        { date: "2025-12-31", name: "Véspera de Ano Novo", type: "optional" }
+    ];
+
     /**
      * Processa e armazena lista de feriados da API
      * @param {Array} holidays - Array de feriados da BrasilAPI
@@ -442,6 +464,33 @@ export class DataManager {
                 type: holiday.type || 'national',
                 date: holiday.date
             });
+        }
+    }
+
+    /**
+     * Carrega feriados com fallback para dados estáticos
+     * @param {number} year - Ano
+     * @returns {Promise<Array>} Array de feriados
+     */
+    async loadHolidaysWithFallback(year) {
+        try {
+            // Tenta carregar da API
+            const response = await fetch(`https://brasilapi.com.br/api/feriados/v1/${year}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const holidays = await response.json();
+            this.setHolidays(holidays);
+            return holidays;
+        } catch (error) {
+            console.warn(`API de feriados falhou (${error.message}), usando dados de fallback`);
+            // Usa dados de fallback
+            const fallbackYear = year === 2025 ? this.FALLBACK_HOLIDAYS_2025 : this.FALLBACK_HOLIDAYS_2025.map(h => ({
+                ...h,
+                date: h.date.replace('2025', String(year))
+            }));
+            this.setHolidays(fallbackYear);
+            return fallbackYear;
         }
     }
 
