@@ -83,7 +83,6 @@ python3 -m http.server
 KeepUP/
 ├── index.html              # Página principal (HTML + interface de login)
 ├── README.md               # Documentação geral do projeto
-├── RELATORIO.md            # Documentação técnica detalhada
 ├── css/
 │   └── styles.css          # Estilos customizados (variáveis, calendário, responsividade)
 └── js/
