@@ -1,0 +1,52 @@
+<parameter name="content"># Calendar Project - Description Feature Redesign
+
+## Completed: Redesigned Description Feature
+
+### Changes to js/data/data.js:
+
+1. **Enhanced Mark Structure** - Marks now include full metadata:
+   - `colorId` - The color identifier
+   - `colorName` - The color name (copied at creation time)
+   - `colorValue` - The color hex value (copied at creation time)
+   - `description` - The user's description
+   - `createdAt` - Creation timestamp
+   - `updatedAt` - Last update timestamp
+
+2. **New Helper Methods**:
+   - `createLocalDate(year, month, day)` - Creates date at noon local time
+   - `createDateKey(year, month, day)` - Creates YYYY-MM-DD format string
+   - `getMarkByDateAndColor(date, colorId)` - Gets specific mark with metadata
+   - `getMarksForDate(date)` - Gets all marks for a date with full metadata
+   - `getMarksForMonth(year, month)` - Gets all marks for a month
+
+3. **Improved Validation**:
+   - `addMark()` - Validates date and colorId, includes color metadata
+   - `updateMarkDescription()` - Updates description and refreshes color metadata
+
+### How Description Persistence Works:
+
+1. **When adding a mark**:
+   - Creates a mark with `colorId`, `colorName`, `colorValue`, and empty `description`
+   - Saves to localStorage immediately
+
+2. **When editing a description**:
+   - Updates the `description` field on the mark
+   - Updates `updatedAt` timestamp
+   - Refreshes color metadata in case color was modified
+   - Saves to localStorage
+
+3. **When viewing day details**:
+   - Loads all marks for the date from localStorage
+   - Each mark includes its description and color metadata
+   - Descriptions are displayed grouped by their associated color
+
+### Key Features:
+
+- **Reliable Association**: Each description is tied to a specific (date, colorId) combination
+- **Color Metadata Preservation**: Color info is stored with each mark, so descriptions remain accurate even if colors are modified
+- **Persistence**: All data saved to localStorage automatically
+- **Orphan Handling**: If a color is deleted, marks show "Cor removida" instead of breaking
+- **Timezone Safe**: Dates are stored as YYYY-MM-DD strings, avoiding timezone issues
+
+## Status: COMPLETE
+</parameter>

@@ -1,0 +1,169 @@
+<parameter name="content">/**
+ * Main Entry Point
+ * 
+ * Inicialização da aplicação do calendário.
+ * Este arquivo integra todos os módulos e configura
+ * o comportamento inicial da aplicação.
+ */
+
+// Importação dos módulos
+import { calendarManager } from './calendar/calendar.js';
+import { uiManager } from './ui/ui.js';
+import { dataManager } from './data/data.js';
+
+/**
+ * Classe principal da aplicação
+ */
+class CalendarApp {
+    constructor() {
+        this.isInitialized = false;
+    }
+
+    /**
+     * Inicializa a aplicação
+     */
+    init() {
+        if (this.isInitialized) {
+            console.warn('Aplicação já inicializada');
+            return;
+        }
+
+        try {
+            // Configura listeners globais
+            this.setupGlobalListeners();
+
+            // Inicializa a interface
+            this.initializeUI();
+
+            this.isInitialized = true;
+            console.log('Calendário inicializado com sucesso');
+        } catch (error) {
+            console.error('Erro ao inicializar aplicação:', error);
+            this.showError(error);
+        }
+    }
+
+    /**
+     * Configura listeners globais
+     */
+    setupGlobalListeners() {
+        // Listener para navegação do teclado
+        document.addEventListener('keydown', (e) => this.handleKeyNavigation(e));
+
+        // Listener para redimensionamento da janela
+        window.addEventListener('resize', () => this.handleResize());
+
+        // Previne comportamentos padrão em double-click
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.closest('.calendar-day')) {
+                e.preventDefault();
+            }
+        });
+    }
+
+    /**
+     * Inicializa a interface
+     */
+    initializeUI() {
+        // Inicializa o calendário
+        calendarManager.init();
+        
+        // Inicializa a interface do usuário
+        uiManager.init();
+    }
+
+    /**
+     * Trata navegação por teclado
+     * @param {KeyboardEvent} event
+     */
+    handleKeyNavigation(event) {
+        // ESC fecha modais
+        if (event.key === 'Escape') {
+            uiManager.closeDayModal();
+            uiManager.closeColorsModal();
+            uiManager.closeDescriptionModal();
+        }
+
+        // Setas para navegação do calendário
+        if (event.key === 'ArrowLeft' && !event.target.matches('input, textarea')) {
+            calendarManager.prevMonth();
+        } else if (event.key === 'ArrowRight' && !event.target.matches('input, textarea')) {
+            calendarManager.nextMonth();
+        } else if (event.key === 'Home' && !event.target.matches('input, textarea')) {
+            calendarManager.goToToday();
+        }
+    }
+
+    /**
+     * Trata redimensionamento da janela
+     */
+    handleResize() {
+        // Pode ser usado para ajustes responsivos
+    }
+
+    /**
+     * Exibe erro na interface
+     * @param {Error} error
+     */
+    showError(error) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-banner';
+        errorDiv.innerHTML = `
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg" role="alert">
+                <strong class="font-bold">Erro: </strong>
+                <span class="block sm:inline">${error.message}</span>
+            </div>
+        `;
+        
+        // Insere no início do main
+        const mainElement = document.querySelector('main');
+        if (mainElement) {
+            mainElement.insertBefore(errorDiv, mainElement.firstChild);
+        }
+    }
+
+    /**
+     * Obtém o estado atual da aplicação
+     * @returns {object} Estado da aplicação
+     */
+    getState() {
+        if (!this.isInitialized) {
+            return { isInitialized: false };
+        }
+        
+        return {
+            isInitialized: true,
+            currentView: calendarManager.getCurrentView(),
+            isToday: calendarManager.isCurrentView(),
+            stats: dataManager.getStats()
+        };
+    }
+
+    /**
+     * Reseta a aplicação
+     */
+    reset() {
+        if (confirm('Tem certeza que deseja limpar todos os dados?\n\nIsso incluirá todas as cores e marcações.')) {
+            dataManager.clearAll();
+            calendarManager.refresh();
+            uiManager.renderUserColors();
+        }
+    }
+}
+
+// Cria e inicializa a aplicação
+const app = new CalendarApp();
+
+// Inicia quando o DOM estiver pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => app.init());
+} else {
+    app.init();
+}
+
+// Exporta para uso global
+window.CalendarApp = app;
+window.calendarManager = calendarManager;
+window.dataManager = dataManager;
+window.uiManager = uiManager;
+</parameter>

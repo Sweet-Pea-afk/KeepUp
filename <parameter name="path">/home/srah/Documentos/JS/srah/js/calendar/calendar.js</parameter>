@@ -1,0 +1,241 @@
+<parameter name="content">/**
+ * Módulo de Calendário
+ * 
+ * Lógica principal de renderização e gerenciamento
+ * do calendário visual.
+ */
+
+import { dataManager } from '../data/data.js';
+import { 
+    formatMonthYear, 
+    getFirstDayOfMonth, 
+    getDaysInMonth, 
+    getDayOfWeek,
+    isToday 
+} from '../utils/utils.js';
+
+/**
+ * Classe responsável pela lógica do calendário
+ */
+export class CalendarManager {
+    constructor() {
+        this.currentDate = new Date();
+        this.viewYear = this.currentDate.getFullYear();
+        this.viewMonth = this.currentDate.getMonth();
+    }
+
+    /**
+     * Inicializa o calendário
+     */
+    init() {
+        this.render();
+    }
+
+    /**
+     * Renderiza o calendário completo
+     */
+    render() {
+        this.renderHeader();
+        this.renderGrid();
+    }
+
+    /**
+     * Renderiza o cabeçalho com navegação de meses
+     */
+    renderHeader() {
+        const headerDate = new Date(this.viewYear, this.viewMonth, 1);
+        const monthYearText = formatMonthYear(headerDate);
+        
+        const currentMonthEl = document.getElementById('currentMonth');
+        if (currentMonthEl) {
+            currentMonthEl.textContent = monthYearText;
+        }
+    }
+
+    /**
+     * Renderiza o grid do calendário
+     */
+    renderGrid() {
+        const grid = document.getElementById('calendarGrid');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+
+        const firstDayOfMonth = getFirstDayOfMonth(new Date(this.viewYear, this.viewMonth, 1));
+        const daysInMonth = getDaysInMonth(new Date(this.viewYear, this.viewMonth, 1));
+        const today = new Date();
+
+        // Obtém o primeiro dia da semana (0 = Domingo)
+        const startDayOfWeek = getDayOfWeek(firstDayOfMonth);
+
+        // Dias do mês anterior (preenchimento)
+        const daysInPrevMonth = getDaysInMonth(new Date(this.viewYear, this.viewMonth, 0));
+        for (let i = startDayOfWeek - 1; i >= 0; i--) {
+            const day = daysInPrevMonth - i;
+            const date = new Date(this.viewYear, this.viewMonth - 1, day);
+            this.createDayCell(date, grid, true);
+        }
+
+        // Dias do mês atual
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(this.viewYear, this.viewMonth, day);
+            const isTodayDate = isToday(date);
+            this.createDayCell(date, grid, false, isTodayDate);
+        }
+
+        // Dias do próximo mês (preenchimento) - completar até 42 células (6 semanas)
+        const totalCells = startDayOfWeek + daysInMonth;
+        const remainingCells = 42 - totalCells;
+        
+        for (let day = 1; day <= remainingCells; day++) {
+            const date = new Date(this.viewYear, this.viewMonth + 1, day);
+            this.createDayCell(date, grid, true);
+        }
+    }
+
+    /**
+     * Cria uma célula de dia no grid
+     * @param {Date} date - Data
+     * @param {HTMLElement} grid - Container do grid
+     * @param {boolean} isOtherMonth - Se é de outro mês
+     * @param {boolean} isTodayDate - Se é hoje
+     */
+    createDayCell(date, grid, isOtherMonth, isTodayDate = false) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-day';
+        
+        if (isOtherMonth) {
+            cell.classList.add('other-month');
+        }
+        
+        if (isTodayDate) {
+            cell.classList.add('today');
+        }
+
+        // Número do dia
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'day-number';
+        dayNumber.textContent = date.getDate();
+        cell.appendChild(dayNumber);
+
+        // Marcações (apenas para o mês atual)
+        if (!isOtherMonth) {
+            const marks = dataManager.getMarksForDate(date);
+            
+            if (marks.length > 0) {
+                cell.classList.add('has-markers');
+                const markersContainer = this.createMarkersContainer(marks);
+                cell.appendChild(markersContainer);
+            }
+        }
+
+        // Accessibility - usa data-date attribute para clique via delegação
+        cell.setAttribute('role', 'button');
+        cell.setAttribute('tabindex', '0');
+        cell.setAttribute('data-date', date.toISOString());
+        cell.setAttribute('aria-label', `Dia ${date.getDate()}, ${date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`);
+
+        grid.appendChild(cell);
+    }
+
+    /**
+     * Cria o container de marcadores para uma célula
+     * @param {Array} marks - Lista de marcações
+     * @returns {HTMLElement} Container de marcadores
+     */
+    createMarkersContainer(marks) {
+        const container = document.createElement('div');
+        container.className = 'day-markers';
+
+        // Calcula a altura proporcional para cada marcação
+        const heightPercent = 100 / marks.length;
+
+        marks.forEach(mark => {
+            const markerEl = document.createElement('div');
+            markerEl.className = 'day-marker';
+            markerEl.style.backgroundColor = mark.colorValue;
+            markerEl.style.height = `${heightPercent}%`;
+            markerEl.title = `${mark.colorName}${mark.description ? ': ' + mark.description : ''}`;
+            
+            container.appendChild(markerEl);
+        });
+
+        return container;
+    }
+
+    /**
+     * Navega para o mês anterior
+     */
+    prevMonth() {
+        this.viewMonth--;
+        if (this.viewMonth < 0) {
+            this.viewMonth = 11;
+            this.viewYear--;
+        }
+        this.render();
+    }
+
+    /**
+     * Navega para o próximo mês
+     */
+    nextMonth() {
+        this.viewMonth++;
+        if (this.viewMonth > 11) {
+            this.viewMonth = 0;
+            this.viewYear++;
+        }
+        this.render();
+    }
+
+    /**
+     * Vai para o mês atual
+     */
+    goToToday() {
+        const today = new Date();
+        this.viewYear = today.getFullYear();
+        this.viewMonth = today.getMonth();
+        this.render();
+    }
+
+    /**
+     * Vai para um mês específico
+     * @param {number} year - Ano
+     * @param {number} month - Mês (0-11)
+     */
+    goToMonth(year, month) {
+        this.viewYear = year;
+        this.viewMonth = month;
+        this.render();
+    }
+
+    /**
+     * Obtém o mês e ano atuais
+     * @returns {object} Objeto com year e month
+     */
+    getCurrentView() {
+        return {
+            year: this.viewYear,
+            month: this.viewMonth
+        };
+    }
+
+    /**
+     * Verifica se a visualização atual é o mês atual
+     * @returns {boolean} True se for o mês atual
+     */
+    isCurrentView() {
+        const today = new Date();
+        return this.viewYear === today.getFullYear() && this.viewMonth === today.getMonth();
+    }
+
+    /**
+     * Atualiza a visualização (re-renderiza)
+     */
+    refresh() {
+        this.render();
+    }
+}
+
+// Exporta uma instância única do gerenciador de calendário
+export const calendarManager = new CalendarManager();
+</parameter>

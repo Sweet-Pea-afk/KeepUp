@@ -1,0 +1,567 @@
+<parameter name="content">/**
+ * Módulo de Interface
+ * 
+ * Manipulação da interface do usuário,
+ * incluindo modais, cores e marcações de dias.
+ */
+
+import { dataManager } from '../data/data.js';
+import { calendarManager } from '../calendar/calendar.js';
+import { formatDateReadable } from '../utils/utils.js';
+
+/**
+ * Classe responsável pela interface do usuário
+ */
+export class UIManager {
+    constructor() {
+        this.selectedColorId = null;
+        this.selectedDate = null;
+        this.initElements();
+        this.bindEvents();
+    }
+
+    /**
+     * Inicializa referências aos elementos do DOM
+     */
+    initElements() {
+        // Elementos do calendário
+        this.calendarGrid = document.getElementById('calendarGrid');
+        this.currentMonthEl = document.getElementById('currentMonth');
+        this.prevMonthBtn = document.getElementById('prevMonth');
+        this.nextMonthBtn = document.getElementById('nextMonth');
+        this.todayBtn = document.getElementById('todayBtn');
+
+        // Painel de cores
+        this.userColorsList = document.getElementById('userColorsList');
+        this.noColorsMessage = document.getElementById('noColorsMessage');
+        this.openColorsManager = document.getElementById('openColorsManager');
+        this.addFirstColor = document.getElementById('addFirstColor');
+
+        // Modal de gerenciamento de cores
+        this.colorsModal = document.getElementById('colorsModal');
+        this.colorsModalBackdrop = document.getElementById('colorsModalBackdrop');
+        this.closeColorsModal = document.getElementById('closeColorsModal');
+        this.colorForm = document.getElementById('colorForm');
+        this.colorNameInput = document.getElementById('colorName');
+        this.newColorValueInput = document.getElementById('newColorValue');
+        this.newColorPicker = document.getElementById('newColorPicker');
+        this.colorsList = document.getElementById('colorsList');
+
+        // Modal de detalhes do dia
+        this.dayModal = document.getElementById('dayModal');
+        this.modalTitle = document.getElementById('modalTitle');
+        this.modalDate = document.getElementById('modalDate');
+        this.dayMarkers = document.getElementById('dayMarkers');
+        this.dayEmpty = document.getElementById('dayEmpty');
+        this.closeModalBtn = document.getElementById('closeModal');
+        this.modalBackdrop = document.getElementById('modalBackdrop');
+
+        // Modal de descrição
+        this.descriptionModal = document.getElementById('descriptionModal');
+        this.descModalHeader = document.getElementById('descModalHeader');
+        this.descColorIdInput = document.getElementById('descColorId');
+        this.descDateInput = document.getElementById('descDate');
+        this.descColorPreview = document.getElementById('descColorPreview');
+        this.descTextInput = document.getElementById('descText');
+        this.descriptionForm = document.getElementById('descriptionForm');
+        this.removeMarkBtn = document.getElementById('removeMarkBtn');
+    }
+
+    /**
+     * Vincula eventos aos elementos
+     */
+    bindEvents() {
+        // Navegação do calendário
+        this.prevMonthBtn.addEventListener('click', () => this.navigateMonth(-1));
+        this.nextMonthBtn.addEventListener('click', () => this.navigateMonth(1));
+        this.todayBtn.addEventListener('click', () => this.goToToday());
+
+        // Cores
+        this.openColorsManager.addEventListener('click', () => this.openColorsModal());
+        this.addFirstColor.addEventListener('click', () => this.openColorsModal());
+        this.closeColorsModal.addEventListener('click', () => this.closeColorsModal());
+        this.colorsModalBackdrop.addEventListener('click', () => this.closeColorsModal());
+        this.colorForm.addEventListener('submit', (e) => this.handleColorSubmit(e));
+        this.newColorPicker.addEventListener('click', (e) => this.handleNewColorSelect(e));
+
+        // Modal de detalhes do dia
+        this.closeModalBtn.addEventListener('click', () => this.closeDayModal());
+        this.modalBackdrop.addEventListener('click', () => this.closeDayModal());
+
+        // Modal de descrição
+        this.descriptionForm.addEventListener('submit', (e) => this.handleDescriptionSubmit(e));
+        this.removeMarkBtn.addEventListener('click', () => this.handleRemoveMark());
+
+        // Centralized click handler for calendar days (event delegation)
+        document.addEventListener('click', (e) => {
+            const dayCell = e.target.closest('.calendar-day');
+            if (dayCell && dayCell.hasAttribute('data-date')) {
+                const date = new Date(dayCell.getAttribute('data-date'));
+                this.handleDayClick(date);
+            }
+        });
+
+        // Fechar modais com ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeDayModal();
+                this.closeColorsModal();
+                this.closeDescriptionModal();
+            }
+        });
+    }
+
+    /**
+     * Handles click on a calendar day
+     * @param {Date} date - Clicked date
+     */
+    handleDayClick(date) {
+        const selectedColorId = this.selectedColorId;
+
+        // If a color is selected, toggle the mark
+        if (selectedColorId) {
+            try {
+                if (dataManager.hasMark(date, selectedColorId)) {
+                    dataManager.removeMark(date, selectedColorId);
+                } else {
+                    dataManager.addMark(date, selectedColorId);
+                }
+                calendarManager.refresh();
+            } catch (error) {
+                alert(error.message);
+            }
+        } else {
+            // Otherwise, open day details
+            this.openDayModal(date);
+        }
+    }
+
+    // ===========================
+    // Painel de Cores do Usuário
+    // ===========================
+
+    /**
+     * Renderiza a lista de cores do usuário
+     */
+    renderUserColors() {
+        const colors = dataManager.getAllColors();
+
+        if (colors.length === 0) {
+            this.userColorsList.classList.add('hidden');
+            this.noColorsMessage.classList.remove('hidden');
+            return;
+        }
+
+        this.userColorsList.classList.remove('hidden');
+        this.noColorsMessage.classList.add('hidden');
+
+        this.userColorsList.innerHTML = colors.map(color => {
+            const isSelected = this.selectedColorId === color.id;
+            return `
+                <div 
+                    class="user-color-item ${isSelected ? 'selected' : ''}" 
+                    data-color-id="${color.id}"
+                >
+                    <span 
+                        class="color-preview" 
+                        style="background-color: ${color.color}"
+                    ></span>
+                    <span class="color-name">${color.name}</span>
+                </div>
+            `;
+        }).join('');
+
+        // Bind eventos de seleção
+        this.userColorsList.querySelectorAll('.user-color-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const colorId = item.dataset.colorId;
+                this.selectColor(colorId);
+            });
+        });
+    }
+
+    /**
+     * Seleciona uma cor
+     * @param {string} colorId - ID da cor
+     */
+    selectColor(colorId) {
+        this.selectedColorId = colorId;
+        this.renderUserColors();
+    }
+
+    /**
+     * Desseleciona a cor atual
+     */
+    deselectColor() {
+        this.selectedColorId = null;
+        this.renderUserColors();
+    }
+
+    // ===========================
+    // Modal de Gerenciamento de Cores
+    // ===========================
+
+    /**
+     * Abre o modal de gerenciamento de cores
+     */
+    openColorsModal() {
+        this.renderColorsList();
+        this.colorForm.reset();
+        this.newColorValueInput.value = '';
+        this.updateNewColorSelection();
+        this.colorsModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => this.colorNameInput.focus(), 100);
+    }
+
+    /**
+     * Fecha o modal de gerenciamento de cores
+     */
+    closeColorsModal() {
+        this.colorsModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    /**
+     * Renderiza a lista de cores no modal
+     */
+    renderColorsList() {
+        const colors = dataManager.getAllColors();
+
+        if (colors.length === 0) {
+            this.colorsList.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Nenhuma cor cadastrada</p>';
+            return;
+        }
+
+        this.colorsList.innerHTML = colors.map(color => `
+            <div class="color-list-item" data-color-id="${color.id}">
+                <span 
+                    class="color-preview" 
+                    style="background-color: ${color.color}"
+                ></span>
+                <div class="color-info">
+                    <div class="color-name">${color.name}</div>
+                    <div class="color-hex">${color.color}</div>
+                <div class="color-actions">
+                    <button 
+                        class="action-btn edit-btn" 
+                        data-color-id="${color.id}"
+                        title="Editar"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                    </button>
+                    <button 
+                        class="action-btn delete-btn" 
+                        data-color-id="${color.id}"
+                        title="Excluir"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                    </button>
+                </div>
+        `).join('');
+
+        // Bind eventos
+        this.colorsList.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openEditColorModal(btn.dataset.colorId);
+            });
+        });
+
+        this.colorsList.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleDeleteColor(btn.dataset.colorId);
+            });
+        });
+    }
+
+    /**
+     * Trata a seleção de nova cor
+     */
+    handleNewColorSelect(event) {
+        const button = event.target.closest('.color-option');
+        if (!button) return;
+
+        this.newColorValueInput.value = button.dataset.color;
+        this.updateNewColorSelection();
+    }
+
+    /**
+     * Atualiza a visualização de seleção de nova cor
+     */
+    updateNewColorSelection() {
+        this.newColorPicker.querySelectorAll('.color-option').forEach(btn => {
+            if (btn.dataset.color === this.newColorValueInput.value) {
+                btn.classList.add('selected');
+            } else {
+                btn.classList.remove('selected');
+            }
+        });
+    }
+
+    /**
+     * Trata o envio do formulário de cor
+     */
+    handleColorSubmit(event) {
+        event.preventDefault();
+
+        const name = this.colorNameInput.value.trim();
+        const color = this.newColorValueInput.value;
+
+        if (!name) {
+            alert('Por favor, digite um nome para a cor');
+            return;
+        }
+
+        if (!color) {
+            alert('Por favor, selecione uma cor');
+            return;
+        }
+
+        try {
+            dataManager.addColor(name, color);
+            this.colorForm.reset();
+            this.newColorValueInput.value = '';
+            this.updateNewColorSelection();
+            this.renderColorsList();
+            this.renderUserColors();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    /**
+     * Abre o modal de edição de cor
+     */
+    openEditColorModal(colorId) {
+        const color = dataManager.getColorById(colorId);
+        if (!color) return;
+
+        const newName = prompt('Novo nome da cor:', color.name);
+        if (newName === null) return;
+
+        if (newName.trim() === '') {
+            alert('O nome não pode estar vazio');
+            return;
+        }
+
+        dataManager.updateColor(colorId, { name: newName.trim() });
+        this.renderColorsList();
+        this.renderUserColors();
+    }
+
+    /**
+     * Exclui uma cor
+     */
+    handleDeleteColor(colorId) {
+        if (confirm('Tem certeza que deseja excluir esta cor? Ela será removida de todos os dias marcados.')) {
+            dataManager.deleteColor(colorId);
+            this.renderColorsList();
+            this.renderUserColors();
+            
+            if (this.selectedColorId === colorId) {
+                this.selectedColorId = null;
+            }
+        }
+    }
+
+    // ===========================
+    // Modal de Detalhes do Dia
+    // ===========================
+
+    /**
+     * Abre o modal de detalhes do dia
+     * @param {Date} date - Data selecionada
+     */
+    openDayModal(date) {
+        this.selectedDate = date;
+        
+        // Atualiza o título e data
+        this.modalTitle.textContent = 'Detalhes do Dia';
+        this.modalDate.textContent = formatDateReadable(date);
+
+        // Obtém marcações - now with full color info and descriptions
+        const marks = dataManager.getMarksForDate(date);
+        this.renderDayMarks(marks);
+
+        // Exibe o modal
+        this.dayModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    /**
+     * Fecha o modal de detalhes do dia
+     */
+    closeDayModal() {
+        this.dayModal.classList.add('hidden');
+        document.body.style.overflow = '';
+        this.selectedDate = null;
+    }
+
+    /**
+     * Renderiza as marcações do dia no modal
+     * Uses the new getMarksForDate structure with colorName, colorValue, description
+     */
+    renderDayMarks(marks) {
+        if (marks.length === 0) {
+            this.dayMarkers.innerHTML = '';
+            this.dayEmpty.classList.remove('hidden');
+            return;
+        }
+
+        this.dayEmpty.classList.add('hidden');
+
+        this.dayMarkers.innerHTML = marks.map(mark => `
+            <div 
+                class="day-mark-item ${mark.hasDescription ? 'has-description' : ''}" 
+                data-color-id="${mark.colorId}"
+            >
+                <span 
+                    class="mark-color" 
+                    style="background-color: ${mark.colorValue}"
+                ></span>
+                <div class="mark-info">
+                    <div class="mark-name">${mark.colorName}</div>
+                    ${mark.description ? `<div class="mark-desc">${mark.description}</div>` : ''}
+                </div>
+                <span class="mark-indicator" title="${mark.hasDescription ? 'Com descrição' : 'Sem descrição'}"></span>
+            </div>
+        `).join('');
+
+        // Bind eventos de clique
+        this.dayMarkers.querySelectorAll('.day-mark-item').forEach(item => {
+            item.addEventListener('click', () => {
+                this.openDescriptionModal(this.selectedDate, item.dataset.colorId);
+            });
+        });
+    }
+
+    // ===========================
+    // Modal de Descrição
+    // ===========================
+
+    /**
+     * Abre o modal de descrição
+     */
+    openDescriptionModal(date, colorId) {
+        // Get color info - now marks return colorName and colorValue directly
+        const marks = dataManager.getMarksForDate(date);
+        const mark = marks.find(m => m.colorId === colorId);
+        
+        if (!mark || !date) return;
+
+        this.selectedDate = date;
+        this.descColorIdInput.value = colorId;
+        this.descDateInput.value = dataManager.getDateKey(date);
+
+        // Preview da cor - now includes colorName directly
+        this.descColorPreview.innerHTML = `
+            <span 
+                class="color-dot" 
+                style="background-color: ${mark.colorValue}"
+            ></span>
+            <span class="color-label">${mark.colorName}</span>
+        `;
+
+        // Descrição atual - now directly on the mark object
+        this.descTextInput.value = mark.description || '';
+
+        // Header com a cor
+        this.descModalHeader.style.background = `linear-gradient(135deg, ${mark.colorValue} 0%, ${mark.colorValue}dd 100%)`;
+
+        // Exibe o modal
+        this.descriptionModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => this.descTextInput.focus(), 100);
+    }
+
+    /**
+     * Fecha o modal de descrição
+     */
+    closeDescriptionModal() {
+        this.descriptionModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    /**
+     * Trata o envio do formulário de descrição
+     */
+    handleDescriptionSubmit(event) {
+        event.preventDefault();
+
+        const colorId = this.descColorIdInput.value;
+        const date = new Date(this.descDateInput.value);
+        const description = this.descTextInput.value;
+
+        try {
+            dataManager.updateMarkDescription(date, colorId, description);
+            this.closeDescriptionModal();
+            calendarManager.refresh();
+            this.openDayModal(date);
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    /**
+     * Remove uma marcação
+     */
+    handleRemoveMark() {
+        const colorId = this.descColorIdInput.value;
+        const date = new Date(this.descDateInput.value);
+
+        if (confirm('Tem certeza que deseja remover esta marcação do dia?')) {
+            dataManager.removeMark(date, colorId);
+            this.closeDescriptionModal();
+            calendarManager.refresh();
+            this.closeDayModal();
+        }
+    }
+
+    // ===========================
+    // Navegação do Calendário
+    // ===========================
+
+    /**
+     * Navega para o mês anterior/próximo
+     * @param {number} direction - Direção (-1 ou 1)
+     */
+    navigateMonth(direction) {
+        if (direction < 0) {
+            calendarManager.prevMonth();
+        } else {
+            calendarManager.nextMonth();
+        }
+    }
+
+    /**
+     * Vai para o mês atual
+     */
+    goToToday() {
+        calendarManager.goToToday();
+    }
+
+    // ===========================
+    // Inicialização
+    // ===========================
+
+    /**
+     * Inicializa a interface
+     */
+    init() {
+        // Initialize calendar (uses centralized calendarManager)
+        calendarManager.init();
+        
+        // Render user colors panel
+        this.renderUserColors();
+    }
+}
+
+// Exporta uma instância única do gerenciador de interface
+export const uiManager = new UIManager();
+</parameter>

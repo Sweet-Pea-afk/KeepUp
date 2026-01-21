@@ -1,0 +1,297 @@
+/**
+ * Módulo de Utilitários
+ * 
+ * Funções auxiliares para manipulação de datas,
+ * formatação e outras operações utilitárias.
+ */
+
+/**
+ * Constantes do calendário
+ */
+export const CALENDAR_CONSTANTS = {
+    DAYS_OF_WEEK: ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
+    DAYS_OF_WEEK_SHORT: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+    MONTHS: [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ],
+    MONTHS_SHORT: [
+        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+    ],
+    FIRST_DAY_OF_WEEK: 0, // Domingo
+    MAX_MARKERS_PER_DAY: 4
+};
+
+/**
+ * Mapeamento de cores disponíveis
+ */
+export const COLOR_MAP = {
+    red: '#ef4444',
+    orange: '#f97316',
+    amber: '#f59e0b',
+    yellow: '#eab308',
+    lime: '#84cc16',
+    green: '#22c55e',
+    emerald: '#10b981',
+    teal: '#14b8a6',
+    cyan: '#06b6d4',
+    sky: '#0ea5e9',
+    blue: '#3b82f6',
+    indigo: '#6366f1',
+    violet: '#8b5cf6',
+    purple: '#a855f7',
+    fuchsia: '#d946ef',
+    pink: '#ec4899',
+    rose: '#f43f5e',
+    slate: '#64748b'
+};
+
+/**
+ * Lista de nomes de cores disponíveis
+ */
+export const COLOR_NAMES = Object.keys(COLOR_MAP);
+
+/**
+ * Obtém o nome do mês por extenso
+ * @param {number} monthIndex - Índice do mês (0-11)
+ * @returns {string} Nome do mês
+ */
+export function getMonthName(monthIndex) {
+    if (monthIndex < 0 || monthIndex > 11) {
+        throw new Error('Índice do mês deve ser entre 0 e 11');
+    }
+    return CALENDAR_CONSTANTS.MONTHS[monthIndex];
+}
+
+/**
+ * Obtém o nome do dia da semana abreviado
+ * @param {number} dayIndex - Índice do dia (0-6)
+ * @returns {string} Nome abreviado do dia
+ */
+export function getDayNameShort(dayIndex) {
+    if (dayIndex < 0 || dayIndex > 6) {
+        throw new Error('Índice do dia deve ser entre 0 e 6');
+    }
+    return CALENDAR_CONSTANTS.DAYS_OF_WEEK_SHORT[dayIndex];
+}
+
+/**
+ * Obtém o nome completo do dia da semana
+ * @param {number} dayIndex - Índice do dia (0-6)
+ * @returns {string} Nome completo do dia
+ */
+export function getDayNameFull(dayIndex) {
+    if (dayIndex < 0 || dayIndex > 6) {
+        throw new Error('Índice do dia deve ser entre 0 e 6');
+    }
+    return CALENDAR_CONSTANTS.DAYS_OF_WEEK[dayIndex];
+}
+
+/**
+ * Cria uma data a partir de ano, mês e dia
+ * @param {number} year - Ano
+ * @param {number} month - Mês (1-12)
+ * @param {number} day - Dia (1-31)
+ * @returns {Date} Objeto Date
+ */
+export function createDate(year, month, day) {
+    return new Date(year, month - 1, day);
+}
+
+/**
+ * Formata uma data para o formato brasileiro DD/MM/AAAA
+ * @param {Date} date - Data a ser formatada
+ * @returns {string} Data formatada
+ */
+export function formatDateBR(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+/**
+ * Formata uma data para o formato legível completo
+ * @param {Date} date - Data a ser formatada
+ * @returns {string} Data formatada (ex: "15 de Janeiro de 2025")
+ */
+export function formatDateReadable(date) {
+    const day = date.getDate();
+    const month = getMonthName(date.getMonth());
+    const year = date.getFullYear();
+    return `${day} de ${month} de ${year}`;
+}
+
+/**
+ * Formata um título de mês e ano
+ * @param {Date} date - Data
+ * @returns {string} Título formatado (ex: "Janeiro de 2025")
+ */
+export function formatMonthYear(date) {
+    const month = getMonthName(date.getMonth());
+    const year = date.getFullYear();
+    return `${month} de ${year}`;
+}
+
+/**
+ * Retorna o primeiro dia do mês
+ * @param {Date} date - Data de referência
+ * @returns {Date} Primeiro dia do mês
+ */
+export function getFirstDayOfMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+/**
+ * Retorna o último dia do mês
+ * @param {Date} date - Data de referência
+ * @returns {Date} Último dia do mês
+ */
+export function getLastDayOfMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+}
+
+/**
+ * Retorna a quantidade de dias no mês
+ * @param {Date} date - Data de referência
+ * @returns {number} Quantidade de dias
+ */
+export function getDaysInMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+}
+
+/**
+ * Obtém o dia da semana (0 = Domingo, 6 = Sábado)
+ * @param {Date} date - Data
+ * @returns {number} Dia da semana
+ */
+export function getDayOfWeek(date) {
+    return date.getDay();
+}
+
+/**
+ * Verifica se duas datas são do mesmo dia
+ * @param {Date} date1 - Primeira data
+ * @param {Date} date2 - Segunda data
+ * @returns {boolean} True se forem do mesmo dia
+ */
+export function isSameDay(date1, date2) {
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
+}
+
+/**
+ * Verifica se uma data é hoje
+ * @param {Date} date - Data a verificar
+ * @returns {boolean} True se for hoje
+ */
+export function isToday(date) {
+    const today = new Date();
+    return isSameDay(date, today);
+}
+
+/**
+ * Adiciona meses a uma data
+ * @param {Date} date - Data de referência
+ * @param {number} months - Quantidade de meses a adicionar
+ * @returns {Date} Nova data
+ */
+export function addMonths(date, months) {
+    const newDate = new Date(date);
+    newDate.setMonth(newDate.getMonth() + months);
+    return newDate;
+}
+
+/**
+ * Adiciona dias a uma data
+ * @param {Date} date - Data de referência
+ * @param {number} days - Quantidade de dias a adicionar
+ * @returns {Date} Nova data
+ */
+export function addDays(date, days) {
+    const newDate = new Date(date);
+    newDate.setDate(newDate.getDate() + days);
+    return newDate;
+}
+
+/**
+ * Gera um ID único
+ * @returns {string} ID único
+ */
+export function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+/**
+ * Deep clone de objetos
+ * @param {any} obj - Objeto a clonar
+ * @returns {any} Clone do objeto
+ */
+export function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
+/**
+ * Verifica se um objeto está vazio
+ * @param {object} obj - Objeto a verificar
+ * @returns {boolean} True se estiver vazio
+ */
+export function isEmpty(obj) {
+    if (obj === null || obj === undefined) return true;
+    if (Array.isArray(obj)) return obj.length === 0;
+    if (typeof obj === 'object') return Object.keys(obj).length === 0;
+    return false;
+}
+
+/**
+ * Limita um valor entre mínimo e máximo
+ * @param {number} value - Valor
+ * @param {number} min - Valor mínimo
+ * @param {number} max - Valor máximo
+ * @returns {number} Valor limitado
+ */
+export function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+/**
+ * Capitaliza a primeira letra de uma string
+ * @param {string} str - String
+ * @returns {string} String capitalizada
+ */
+export function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Trunca uma string para um tamanho máximo
+ * @param {string} str - String
+ * @param {number} maxLength - Tamanho máximo
+ * @returns {string} String truncada
+ */
+export function truncate(str, maxLength = 30) {
+    if (!str || str.length <= maxLength) return str;
+    return str.slice(0, maxLength - 3) + '...';
+}
+
+/**
+ * Obtém a cor em formato hexadecimal pelo nome
+ * @param {string} colorName - Nome da cor
+ * @returns {string} Cor em hexadecimal
+ */
+export function getColorValue(colorName) {
+    return COLOR_MAP[colorName] || colorName;
+}
+
+/**
+ * Gera uma chave única para armazenamento
+ * @param {...string} parts - Partes da chave
+ * @returns {string} Chave gerada
+ */
+export function generateStorageKey(...parts) {
+    return ['calendar', ...parts].join('_');
+}
+

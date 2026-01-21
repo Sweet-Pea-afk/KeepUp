@@ -1,0 +1,529 @@
+<parameter name="content">
+
+import { generateId, generateStorageKey } from '../utils/utils.js';
+
+const COLORS_STORAGE_KEY = generateStorageKey('colors');
+const MARKS_STORAGE_KEY = generateStorageKey('marks');
+
+export class DataManager {
+    constructor() {
+        // Cores definidas pelo usuário (Map: id -> {id, name, color})
+        this.userColors = new Map();
+        
+        // Marcações de dias (Map: dateKey - Map: colorId -> {colorId, description})
+        this.dayMarks = new Map();
+        
+        this.loadFromStorage();
+    }
+
+    // ===========================
+    // Métodos de Cores
+    // ===========================
+
+    /**
+     * Carrega cores do localStorage
+     */
+    loadColorsFromStorage() {
+        try {
+            const stored = localStorage.getItem(COLORS_STORAGE_KEY);
+            if (stored) {
+                const data = JSON.parse(stored);
+                this.userColors = new Map(Object.entries(data.colors || {}));
+            }
+        } catch (error) {
+            console.error('Erro ao carregar cores:', error);
+            this.userColors = new Map();
+        }
+    }
+
+    /**
+     * Salva cores no localStorage
+     */
+    saveColorsToStorage() {
+        try {
+            const data = {
+                colors: Object.fromEntries(this.userColors),
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem(COLORS_STORAGE_KEY, JSON.stringify(data));
+        } catch (error) {
+            console.error('Erro ao salvar cores:', error);
+        }
+    }
+
+    /**
+     * Adiciona uma nova cor
+     * @param {string} name - Nome/legenda da cor
+     * @param {string} color - Valor da cor
+     * @returns {object} Cor criada
+     */
+    addColor(name, color) {
+        const colorObj = {
+            id: generateId(),
+            name: name.trim(),
+            color: color,
+            createdAt: new Date().toISOString()
+        };
+        
+        this.userColors.set(colorObj.id, colorObj);
+        this.saveColorsToStorage();
+        
+        return colorObj;
+    }
+
+    /**
+     * Atualiza uma cor existente
+     * @param {string} colorId - ID da cor
+     * @param {object} updates - Dados a atualizar
+     * @returns {object|null} Cor atualizada
+     */
+    updateColor(colorId, updates) {
+        const color = this.userColors.get(colorId);
+        if (!color) return null;
+        
+        const updatedColor = {
+            ...color,
+            ...updates,
+            name: updates.name ? updates.name.trim() : color.name,
+            updatedAt: new Date().toISOString()
+        };
+        
+        this.userColors.set(colorId, updatedColor);
+        this.saveColorsToStorage();
+        
+        return updatedColor;
+    }
+
+    /**
+     * Remove uma cor
+     * @param {string} colorId - ID da cor
+     * @returns {boolean} True se removida
+     */
+    deleteColor(colorId) {
+        // Remove a cor
+        const result = this.userColors.delete(colorId);
+        
+        if (result) {
+            // Remove todas as marcações com essa cor
+            for (const [dateKey, marks] of this.dayMarks) {
+                if (marks.has(colorId)) {
+                    marks.delete(colorId);
+                    if (marks.size === 0) {
+                        this.dayMarks.delete(dateKey);
+                    }
+                }
+            }
+            this.saveColorsToStorage();
+            this.saveMarksToStorage();
+        }
+        
+        return result;
+    }
+
+    /**
+     * Obtém todas as cores
+     * @returns {Array} Lista de cores
+     */
+    getAllColors() {
+        return Array.from(this.userColors.values());
+    }
+
+    /**
+     * Obtém uma cor pelo ID
+     * @param {string} colorId - ID da cor
+     * @returns {object|null} Cor encontrada
+     */
+    getColorById(colorId) {
+        return this.userColors.get(colorId) || null;
+    }
+
+    /**
+     * Verifica se há cores cadastradas
+     * @returns {boolean}
+     */
+    hasColors() {
+        return this.userColors.size > 0;
+    }
+
+    // ===========================
+    // Métodos de Marcações e Descrições
+    // ===========================
+
+    /**
+     * Gera uma chave única para uma data (YEAR-MONTH-DAY format)
+     * Uses local time to avoid timezone issues
+     * @param {Date} date - Data
+     * @returns {string} Chave no formato YYYY-MM-DD
+     */
+    getDateKey(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    /**
+     * Carrega marcações do localStorage
+     */
+    loadMarksFromStorage() {
+        try {
+            const stored = localStorage.getItem(MARKS_STORAGE_KEY);
+            if (stored) {
+                const data = JSON.parse(stored);
+                // Converte objeto em Map aninhado
+                this.dayMarks = new Map();
+                for (const [dateKey, marksObj] of Object.entries(data.marks || {})) {
+                    this.dayMarks.set(dateKey, new Map(Object.entries(marksObj)));
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao carregar marcações:', error);
+            this.dayMarks = new Map();
+        }
+    }
+
+    /**
+     * Salva marcações no localStorage
+     */
+    saveMarksToStorage() {
+        try {
+            // Converte Map aninhado em objeto
+            const marksObj = {};
+            for (const [dateKey, marks] of this.dayMarks) {
+                marksObj[dateKey] = Object.fromEntries(marks);
+            }
+            
+            const data = {
+                marks: marksObj,
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem(MARKS_STORAGE_KEY, JSON.stringify(data));
+        } catch (error) {
+            console.error('Erro ao salvar marcações:', error);
+        }
+    }
+
+    /**
+     * Carrega todos os dados do localStorage
+     */
+    loadFromStorage() {
+        this.loadColorsFromStorage();
+        this.loadMarksFromStorage();
+    }
+
+    /**
+     * Salva todos os dados no localStorage
+     */
+    saveToStorage() {
+        this.saveColorsToStorage();
+        this.saveMarksToStorage();
+    }
+
+    /**
+     * Adiciona uma marcação a um dia (sem descrição)
+     * @param {Date} date - Data
+     * @param {string} colorId - ID da cor
+     * @returns {object} Marcação criada
+     */
+    addMark(date, colorId) {
+        const dateKey = this.getDateKey(date);
+        
+        // Inicializa o Map para esta data se necessário
+        if (!this.dayMarks.has(dateKey)) {
+            this.dayMarks.set(dateKey, new Map());
+        }
+        
+        const marksForDate = this.dayMarks.get(dateKey);
+        
+        // Verifica limite de 4 marcações por dia
+        if (marksForDate.size >= 4) {
+            throw new Error('Máximo de 4 marcações por dia atingido');
+        }
+        
+        // Verifica se a cor já está marcada neste dia
+        if (marksForDate.has(colorId)) {
+            throw new Error('Esta cor já está marcada neste dia');
+        }
+        
+        // Cria a marcação com descrição vazia
+        const mark = {
+            colorId: colorId,
+            description: '',
+            createdAt: new Date().toISOString()
+        };
+        
+        marksForDate.set(colorId, mark);
+        this.saveMarksToStorage();
+        
+        return mark;
+    }
+
+    /**
+     * Remove uma marcação e sua descrição
+     * @param {Date} date - Data
+     * @param {string} colorId - ID da cor
+     * @returns {boolean} True se removida
+     */
+    removeMark(date, colorId) {
+        const dateKey = this.getDateKey(date);
+        const marksForDate = this.dayMarks.get(dateKey);
+        
+        if (!marksForDate) return false;
+        
+        const result = marksForDate.delete(colorId);
+        
+        if (result) {
+            if (marksForDate.size === 0) {
+                this.dayMarks.delete(dateKey);
+            }
+            this.saveMarksToStorage();
+        }
+        
+        return result;
+    }
+
+    /**
+     * Atualiza a descrição de uma marcação
+     * @param {Date} date - Data
+     * @param {string} colorId - ID da cor
+     * @param {string} description - Nova descrição
+     * @returns {object|null} Marcação atualizada
+     */
+    updateMarkDescription(date, colorId, description) {
+        const dateKey = this.getDateKey(date);
+        const marksForDate = this.dayMarks.get(dateKey);
+        
+        if (!marksForDate) return null;
+        
+        const mark = marksForDate.get(colorId);
+        if (!mark) return null;
+        
+        mark.description = description ? description.trim() : '';
+        mark.updatedAt = new Date().toISOString();
+        
+        this.saveMarksToStorage();
+        return mark;
+    }
+
+    /**
+     * Obtém a descrição de uma marcação
+     * @param {Date} date - Data
+     * @param {string} colorId - ID da cor
+     * @returns {string} Descrição ou string vazia
+     */
+    getMarkDescription(date, colorId) {
+        const dateKey = this.getDateKey(date);
+        const marksForDate = this.dayMarks.get(dateKey);
+        
+        if (!marksForDate) return '';
+        
+        const mark = marksForDate.get(colorId);
+        return mark ? mark.description || '' : '';
+    }
+
+    /**
+     * Verifica se um dia tem uma marcação específica
+     * @param {Date} date - Data
+     * @param {string} colorId - ID da cor
+     * @returns {boolean}
+     */
+    hasMark(date, colorId) {
+        const dateKey = this.getDateKey(date);
+        const marksForDate = this.dayMarks.get(dateKey);
+        return marksForDate ? marksForDate.has(colorId) : false;
+    }
+
+    /**
+     * Obtém todas as marcações de um dia com informações da cor
+     * @param {Date} date - Data
+     * @returns {Array} Lista de marcações com informações da cor
+     */
+    getMarksForDate(date) {
+        const dateKey = this.getDateKey(date);
+        const marksForDate = this.dayMarks.get(dateKey);
+        
+        if (!marksForDate || marksForDate.size === 0) return [];
+        
+        const marks = [];
+        for (const [colorId, mark] of marksForDate) {
+            // Look up color info dynamically
+            const color = this.userColors.get(colorId);
+            
+            if (color) {
+                // Color still exists
+                marks.push({
+                    colorId: colorId,
+                    colorName: color.name,
+                    colorValue: color.color,
+                    description: mark.description || '',
+                    hasDescription: !!mark.description
+                });
+            } else {
+                // Color was deleted - mark as "removed"
+                marks.push({
+                    colorId: colorId,
+                    colorName: 'Cor removida',
+                    colorValue: '#9ca3af', // gray
+                    description: mark.description || '',
+                    hasDescription: !!mark.description,
+                    colorRemoved: true
+                });
+            }
+        }
+        
+        return marks;
+    }
+
+    /**
+     * Conta marcações de um dia
+     * @param {Date} date - Data
+     * @returns {number} Quantidade de marcações
+     */
+    countMarks(date) {
+        const dateKey = this.getDateKey(date);
+        return this.dayMarks.get(dateKey)?.size || 0;
+    }
+
+    /**
+     * Verifica se pode adicionar mais marcações a um dia
+     * @param {Date} date - Data
+     * @returns {boolean}
+     */
+    canAddMark(date) {
+        return this.countMarks(date) < 4;
+    }
+
+    /**
+     * Obtém marcações de um mês
+     * @param {number} year - Ano
+     * @param {number} month - Mês (0-11)
+     * @returns {Array} Marcações do mês
+     */
+    getMarksForMonth(year, month) {
+        const monthStr = String(month + 1).padStart(2, '0');
+        const marks = [];
+        
+        for (const [dateKey, marksForDate] of this.dayMarks) {
+            if (dateKey.startsWith(`${year}-${monthStr}`)) {
+                for (const [colorId, mark] of marksForDate) {
+                    const color = this.userColors.get(colorId);
+                    if (color) {
+                        marks.push({
+                            date: dateKey,
+                            colorId,
+                            colorName: color.name,
+                            colorValue: color.color,
+                            description: mark.description
+                        });
+                    }
+                }
+            }
+        }
+        
+        return marks;
+    }
+
+    /**
+     * Busca marcações por termo na descrição
+     * @param {string} searchTerm - Termo de busca
+     * @returns {Array} Marcações encontradas
+     */
+    searchMarks(searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const results = [];
+        
+        for (const [dateKey, marksForDate] of this.dayMarks) {
+            for (const [colorId, mark] of marksForDate) {
+                const color = this.userColors.get(colorId);
+                if (color && (color.name.toLowerCase().includes(term) || 
+                             (mark.description && mark.description.toLowerCase().includes(term)))) {
+                    results.push({
+                        date: dateKey,
+                        colorId,
+                        colorName: color.name,
+                        colorValue: color.color,
+                        description: mark.description
+                    });
+                }
+            }
+        }
+        
+        return results;
+    }
+
+    // ===========================
+    // Métodos de Limpeza e Exportação
+    // ===========================
+
+    /**
+     * Limpa todos os dados
+     */
+    clearAll() {
+        this.userColors.clear();
+        this.dayMarks.clear();
+        localStorage.removeItem(COLORS_STORAGE_KEY);
+        localStorage.removeItem(MARKS_STORAGE_KEY);
+    }
+
+    /**
+     * Exporta todos os dados
+     * @returns {object} Dados exportados
+     */
+    exportData() {
+        const marksObj = {};
+        for (const [dateKey, marks] of this.dayMarks) {
+            marksObj[dateKey] = Object.fromEntries(marks);
+        }
+        
+        return {
+            colors: Object.fromEntries(this.userColors),
+            marks: marksObj,
+            exportDate: new Date().toISOString()
+        };
+    }
+
+    /**
+     * Importa dados
+     * @param {object} data - Dados a importar
+     */
+    importData(data) {
+        if (data.colors) {
+            this.userColors = new Map(Object.entries(data.colors));
+            this.saveColorsToStorage();
+        }
+        
+        if (data.marks) {
+            this.dayMarks = new Map();
+            for (const [dateKey, marksObj] of Object.entries(data.marks)) {
+                this.dayMarks.set(dateKey, new Map(Object.entries(marksObj)));
+            }
+            this.saveMarksToStorage();
+        }
+    }
+
+    /**
+     * Obtém estatísticas
+     * @returns {object} Estatísticas
+     */
+    getStats() {
+        let totalMarks = 0;
+        let totalDays = this.dayMarks.size;
+        let coloredDays = new Set();
+        
+        for (const [dateKey, marksForDate] of this.dayMarks) {
+            totalMarks += marksForDate.size;
+            coloredDays.add(dateKey);
+        }
+        
+        return {
+            totalColors: this.userColors.size,
+            totalMarks,
+            totalDaysWithMarks: coloredDays.size,
+            averageMarksPerDay: coloredDays.size > 0 ? (totalMarks / coloredDays.size).toFixed(1) : 0
+        };
+    }
+}
+
+// Exporta uma instância única do gerenciador de dados
+export const dataManager = new DataManager();
+</parameter>

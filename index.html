@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Calendário</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc',
+                            400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
+                            800: '#075985', 900: '#0c4a6e',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Login Screen (Opcional) -->
+    <div id="loginScreen" class="fixed inset-0 bg-gray-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-soft-lg p-8 w-full max-w-sm">
+            <h2 class="text-xl font-semibold text-gray-800 mb-2 text-center">Bem-vindo!</h2>
+            <p class="text-sm text-gray-500 text-center mb-6">Faça login para salvar seus dados ou continue sem login</p>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="loginEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="loginEmail"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                        placeholder="email@exemplo.com">
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                    <input type="password" id="loginPassword"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                        placeholder="Sua senha">
+                </div>
+                <p id="loginError" class="text-red-500 text-sm hidden"></p>
+                <button type="submit"
+                    class="w-full py-2 px-4 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors">
+                    Entrar
+                </button>
+            </form>
+            
+            <div class="border-t border-gray-100 my-4"></div>
+            
+            <button id="skipLoginBtn"
+                class="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
+                Continuar sem login
+            </button>
+            
+            <p class="text-xs text-gray-400 text-center mt-4">Demo: use qualquer email e senha</p>
+        </div>
+    </div>
+
+    <!-- App Content -->
+    <div id="appContent" class="hidden">
+        <header class="bg-white shadow-soft">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-2xl font-semibold text-gray-800">📅 Calendário</h1>
+                    </div>
+                    
+                    <!-- Botões de Auth -->
+                    <div class="flex items-center gap-2">
+                        <!-- Botão Login (usuário anônimo) -->
+                        <button id="loginBtn" class="hidden px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                            </svg>
+                            Fazer Login
+                        </button>
+                        
+                        <!-- Botão Logout (usuário logado) -->
+                        <button id="logoutBtn" class="hidden px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                            Sair
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div id="loadingIndicator" class="hidden mb-4 p-3 bg-blue-50 text-blue-700 rounded-lg text-sm flex items-center gap-2">
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Carregando dados...</span>
+            </div>
+            <div id="errorMessage" class="hidden mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm"></div>
+
+            <div id="colorsPanel" class="mb-6 bg-white rounded-xl shadow-soft overflow-hidden">
+                <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500">Paleta de Cores</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">Selecione uma cor para marcar dias</p>
+                    </div>
+                    <button id="openColorsManager" class="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Gerenciar Cores
+                    </button>
+                </div>
+                <div id="userColorsList" class="p-4 flex flex-wrap gap-3"></div>
+                <div id="noColorsMessage" class="p-8 text-center hidden">
+                    <p class="text-gray-400 mb-3">Nenhuma cor cadastrada ainda</p>
+                    <button id="addFirstColor" class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors">Adicionar Primeira Cor</button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-soft-lg overflow-hidden">
+                <div class="grid grid-cols-7 bg-gray-50 border-b border-gray-100">
+                    <div class="py-3 text-center text-sm font-medium text-gray-500">Dom</div>
+                    <div class="py-3 text-center text-sm font-medium text-gray-500">Seg</div>
+                    <div class="py-3 text-center text-sm font-medium text-gray-500">Ter</div>
+                    <div class="py-3 text-center text-sm font-medium text-gray-500">Qua</div>
+                    <div class="py-3 text-center text-sm font-medium text-gray-500">Qui</div>
+                    <div class="py-3 text-center text-sm font-medium text-gray-500">Sex</div>
+                    <div class="py-3 text-center text-sm font-medium text-gray-500">Sáb</div>
+                </div>
+                <div id="calendarGrid" class="grid grid-cols-7"></div>
+            </div>
+        </main>
+
+        <!-- Day Modal -->
+        <div id="dayModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="modalBackdrop"></div>
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="relative bg-white rounded-2xl shadow-soft-lg w-full max-w-md" id="modalPanel">
+                    <div class="flex items-center justify-between p-6 border-b border-gray-100">
+                        <h3 id="modalTitle" class="text-lg font-semibold text-gray-800">Detalhes do Dia</h3>
+                        <button id="closeModal" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-6 max-h-96 overflow-y-auto">
+                        <p id="modalDate" class="text-sm text-gray-500 mb-4"></p>
+                        <button id="removeAllMarksBtn" class="mb-3 text-xs text-red-600 hover:text-red-800 underline">Remover todos os marcadores</button>
+                        <div id="dayMarkers" class="space-y-2"></div>
+                        <div id="dayEmpty" class="text-center py-6">
+                            <p class="text-gray-400 text-sm">Nenhuma marcação neste dia</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colors Modal -->
+        <div id="colorsModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="colorsModalBackdrop"></div>
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="relative bg-white rounded-2xl shadow-soft-lg w-full max-w-lg">
+                    <div class="flex items-center justify-between p-6 border-b border-gray-100">
+                        <h3 class="text-lg font-semibold text-gray-800">Gerenciar Cores</h3>
+                        <button id="closeColorsModal" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-6 overflow-y-auto max-h-[60vh]">
+                        <form id="colorForm" class="mb-6 p-4 bg-gray-50 rounded-xl">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Nova Cor</h4>
+                            <div class="space-y-3">
+                                <input type="text" id="colorName" required maxlength="20"
+                                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                                    placeholder="Nome da cor">
+                                <div class="flex flex-wrap gap-2" id="newColorPicker">
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-red-500" data-color="red"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-orange-500" data-color="orange"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-amber-500" data-color="amber"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-yellow-500" data-color="yellow"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-lime-500" data-color="lime"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-green-500" data-color="green"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-emerald-500" data-color="emerald"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-teal-500" data-color="teal"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-cyan-500" data-color="cyan"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-sky-500" data-color="sky"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-blue-500" data-color="blue"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-indigo-500" data-color="indigo"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-violet-500" data-color="violet"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-purple-500" data-color="purple"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-pink-500" data-color="pink"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-rose-500" data-color="rose"></button>
+                                    <button type="button" class="color-option w-8 h-8 rounded-full bg-slate-500" data-color="slate"></button>
+                                </div>
+                                <input type="hidden" id="newColorValue" required>
+                                <button type="submit" class="w-full py-2 px-4 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors">Adicionar Cor</button>
+                            </div>
+                        </form>
+                        <div id="existingColors">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Cores Cadastradas</h4>
+                            <div id="colorsList" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
+

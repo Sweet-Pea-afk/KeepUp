@@ -1,0 +1,494 @@
+/**
+ * Sistema de Calendário - Estilos Customizados
+ * 
+ * Estilo clean e minimalista com TailwindCSS
+ * Complementa o Tailwind com estilos específicos do projeto
+ */
+
+/* ===========================
+   Variáveis CSS
+   =========================== */
+:root {
+    /* Cores dos marcadores */
+    --marker-red: #ef4444;
+    --marker-orange: #f97316;
+    --marker-amber: #f59e0b;
+    --marker-yellow: #eab308;
+    --marker-lime: #84cc16;
+    --marker-green: #22c55e;
+    --marker-emerald: #10b981;
+    --marker-teal: #14b8a6;
+    --marker-cyan: #06b6d4;
+    --marker-sky: #0ea5e9;
+    --marker-blue: #3b82f6;
+    --marker-indigo: #6366f1;
+    --marker-violet: #8b5cf6;
+    --marker-purple: #a855f7;
+    --marker-fuchsia: #d946ef;
+    --marker-pink: #ec4899;
+    --marker-rose: #f43f5e;
+    --marker-slate: #64748b;
+    
+    /* Transições */
+    --transition-fast: 150ms ease;
+    --transition-normal: 200ms ease;
+    --transition-slow: 300ms ease;
+}
+
+/* ===========================
+   Estilos Base
+   =========================== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===========================
+   Calendário
+   =========================== */
+
+/* Célula do calendário */
+.calendar-day {
+    min-height: 100px;
+    border-right: 1px solid #f3f4f6;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color var(--transition-fast);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.calendar-day:hover {
+    background-color: #f8fafc;
+}
+
+.calendar-day:nth-child(7n) {
+    border-right: none;
+}
+
+/* Dia fora do mês atual */
+.calendar-day.other-month {
+    background-color: #fafafa;
+}
+
+.calendar-day.other-month .day-number {
+    color: #d1d5db;
+}
+
+.calendar-day.other-month:hover {
+    background-color: #f3f4f6;
+}
+
+/* Dia de hoje */
+.calendar-day.today {
+    background-color: #eff6ff;
+}
+
+.calendar-day.today .day-number {
+    background-color: #3b82f6;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Número do dia */
+.day-number {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    padding: 0.5rem;
+    position: relative;
+    z-index: 10;
+}
+
+/* Container de marcadores - ocupa toda a altura disponível */
+.day-markers {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 2rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Seção colorida do marcador */
+.day-marker-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0.125rem 0.375rem;
+    overflow: hidden;
+    transition: opacity var(--transition-fast);
+}
+
+.day-marker-section:hover {
+    opacity: 0.9;
+}
+
+/* Label do marcador */
+.day-marker-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ===========================
+   Painel de Cores do Usuário
+   =========================== */
+
+.user-color-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.user-color-item:hover {
+    background-color: #f3f4f6;
+}
+
+.user-color-item.selected {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.user-color-item .color-preview {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.user-color-item .color-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.user-color-item .color-count {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-left: auto;
+}
+
+/* ===========================
+   Modal de Gerenciamento de Cores
+   =========================== */
+
+.color-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+}
+
+.color-list-item .color-preview {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.color-list-item .color-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.color-list-item .color-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.color-list-item .color-hex {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.color-list-item .color-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.color-list-item .action-btn {
+    padding: 0.375rem;
+    border-radius: 0.375rem;
+    transition: background-color var(--transition-fast);
+    color: #6b7280;
+}
+
+.color-list-item .action-btn:hover {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+.color-list-item .delete-btn:hover {
+    color: #ef4444;
+}
+
+/* ===========================
+   Modal de Descrição
+   =========================== */
+
+
+
+
+
+
+/* ===========================
+   Modal Principal
+   =========================== */
+
+/* Animações do modal */
+#dayModal {
+    transition: opacity var(--transition-normal);
+}
+
+#dayModal.hidden {
+    opacity: 0;
+    display: none;
+}
+
+#dayModal.hidden #modalPanel {
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+}
+
+#modalPanel {
+    transition: all var(--transition-normal);
+}
+
+/* Generic hidden class */
+.hidden {
+    display: none !important;
+}
+
+/* Marcação no modal */
+.day-mark-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background-color: #f9fafb;
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+}
+
+.day-mark-item:hover {
+    background-color: #f3f4f6;
+}
+
+.day-mark-item .mark-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.day-mark-item .mark-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.day-mark-item .mark-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.875rem;
+}
+
+
+.day-mark-item .mark-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #d1d5db;
+    flex-shrink: 0;
+}
+
+
+/* ===========================
+   Color Picker
+   =========================== */
+
+.color-option {
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.color-option:hover {
+    transform: scale(1.15);
+}
+
+.color-option.selected {
+    box-shadow: 0 0 0 3px white, 0 0 0 5px currentColor;
+    transform: scale(1.15);
+}
+
+/* ===========================
+   Responsividade
+   =========================== */
+@media (max-width: 768px) {
+    .calendar-day {
+        min-height: 70px;
+    }
+    
+    .day-number {
+        font-size: 0.75rem;
+        padding: 0.25rem;
+    }
+    
+    .day-markers {
+        top: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-day {
+        min-height: 50px;
+    }
+    
+    .day-number {
+        font-size: 0.625rem;
+    }
+    
+    .day-markers {
+        display: none;
+    }
+}
+
+/* ===========================
+   Acessibilidade
+   =========================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus visible para navegação por teclado */
+:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* ===========================
+   Utilitários
+   =========================== */
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Classes de cores utilitárias */
+.bg-marker-red { background-color: var(--marker-red); }
+.bg-marker-orange { background-color: var(--marker-orange); }
+.bg-marker-amber { background-color: var(--marker-amber); }
+.bg-marker-yellow { background-color: var(--marker-yellow); }
+.bg-marker-lime { background-color: var(--marker-lime); }
+.bg-marker-green { background-color: var(--marker-green); }
+.bg-marker-emerald { background-color: var(--marker-emerald); }
+.bg-marker-teal { background-color: var(--marker-teal); }
+.bg-marker-cyan { background-color: var(--marker-cyan); }
+.bg-marker-sky { background-color: var(--marker-sky); }
+.bg-marker-blue { background-color: var(--marker-blue); }
+.bg-marker-indigo { background-color: var(--marker-indigo); }
+.bg-marker-violet { background-color: var(--marker-violet); }
+.bg-marker-purple { background-color: var(--marker-purple); }
+.bg-marker-fuchsia { background-color: var(--marker-fuchsia); }
+.bg-marker-pink { background-color: var(--marker-pink); }
+.bg-marker-rose { background-color: var(--marker-rose); }
+.bg-marker-slate { background-color: var(--marker-slate); }
+
+.text-marker-red { color: var(--marker-red); }
+.text-marker-orange { color: var(--marker-orange); }
+.text-marker-amber { color: var(--marker-amber); }
+.text-marker-green { color: var(--marker-green); }
+.text-marker-emerald { color: var(--marker-emerald); }
+.text-marker-teal { color: var(--marker-teal); }
+.text-marker-cyan { color: var(--marker-cyan); }
+.text-marker-blue { color: var(--marker-blue); }
+.text-marker-indigo { color: var(--marker-indigo); }
+.text-marker-violet { color: var(--marker-violet); }
+.text-marker-purple { color: var(--marker-purple); }
+.text-marker-pink { color: var(--marker-pink); }
+
+/* ===========================
+   Animações
+   =========================== */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
