@@ -35,6 +35,8 @@ export class UIManager {
         this.dayModal = getEl('dayModal');
         this.modalTitle = getEl('modalTitle');
         this.modalDate = getEl('modalDate');
+        this.modalHoliday = getEl('modalHoliday');
+        this.modalHolidayName = getEl('modalHolidayName');
         this.dayMarkers = getEl('dayMarkers');
         this.dayEmpty = getEl('dayEmpty');
         this.closeModalBtn = getEl('closeModal');
@@ -59,7 +61,10 @@ export class UIManager {
         document.addEventListener('click', (e) => {
             const dayCell = e.target.closest('.calendar-day');
             if (dayCell && dayCell.hasAttribute('data-date')) {
-                const date = new Date(dayCell.getAttribute('data-date'));
+                // Corrige problema de timezone criando data a partir dos componentes
+                const dateStr = dayCell.getAttribute('data-date');
+                const [year, month, day] = dateStr.split('-').map(Number);
+                const date = new Date(year, month - 1, day);
                 this.handleDayClick(date);
             }
         });
@@ -240,6 +245,16 @@ export class UIManager {
         this.selectedDate = date;
         if (this.modalTitle) this.modalTitle.textContent = 'Detalhes do Dia';
         if (this.modalDate) this.modalDate.textContent = formatDateReadable(date);
+
+        // Exibe informações do feriado se aplicável
+        const holiday = dataManager.getHolidayForDate(date);
+        if (holiday && this.modalHoliday && this.modalHolidayName) {
+            this.modalHolidayName.textContent = holiday.name;
+            this.modalHoliday.classList.remove('hidden');
+        } else if (this.modalHoliday) {
+            this.modalHoliday.classList.add('hidden');
+        }
+
         this.renderDayMarks(dataManager.getMarksForDate(date));
         this.dayModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';

@@ -133,34 +133,31 @@ class CalendarApp {
     }
 
     initializeUI() {
-        uiManager.init();
-        this.loadHolidays();
+        // Carrega feriados primeiro, depois inicializa a UI
+        this.loadHolidays().then(() => {
+            uiManager.init();
+        });
     }
 
     // ===========================
     // Feriados (Req. 5, 6)
     // ===========================
 
-    loadHolidays() {
+    async loadHolidays() {
         const year = new Date().getFullYear();
         this.showLoading(true);
 
-        dataManager.loadHolidaysWithPromise(year)
-            .then(dados => {
-                console.log('Feriados:', dados.length);
-                this.showLoading(false);
-            })
-            .catch(() => this.loadHolidaysAsync(year));
-    }
-
-    async loadHolidaysAsync(year) {
         try {
-            const holidays = await dataManager.loadHolidaysWithAsync(year);
-            if (holidays.length > 0) {
-                console.log('Feriados async:', holidays.length);
+            // Tenta Promise primeiro, com fallback para async/await
+            const dados = await dataManager.loadHolidaysWithPromise(year)
+                .catch(() => dataManager.loadHolidaysWithAsync(year));
+
+            if (dados && dados.length > 0) {
+                dataManager.setHolidays(dados);
+                console.log('Feriados carregados:', dados.length);
             }
         } catch (error) {
-            this.showError('Não foi possível carregar feriados.');
+            console.warn('Não foi possível carregar feriados:', error.message);
         } finally {
             this.showLoading(false);
         }

@@ -100,6 +100,63 @@ body {
     justify-content: center;
 }
 
+/* Dia de feriado */
+.calendar-day.is-holiday {
+    background-color: #fef3c7;
+    border-left: 3px solid #f59e0b;
+}
+
+.calendar-day.is-holiday:not(.other-month):hover {
+    background-color: #fde68a;
+}
+
+.calendar-day.is-holiday .day-number {
+    color: #92400e;
+    font-weight: 600;
+}
+
+/* Indicador visual de feriado (estrela) */
+.calendar-day.is-holiday::after {
+    content: '★';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 0.625rem;
+    color: #f59e0b;
+    opacity: 0.8;
+}
+
+/* Feriado e hoje juntos */
+.calendar-day.is-holiday.today {
+    background-color: #dbeafe;
+    border-left-color: #f59e0b;
+}
+
+/* Tooltip de feriado */
+.calendar-day[data-holiday]::before {
+    content: attr(data-holiday);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #1f2937;
+    color: white;
+    font-size: 0.625rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.calendar-day[data-holiday]:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
 /* Número do dia */
 .day-number {
     font-size: 0.875rem;

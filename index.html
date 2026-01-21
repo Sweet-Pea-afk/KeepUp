@@ -68,8 +68,27 @@
         <header class="bg-white shadow-soft">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-4">
                         <h1 class="text-2xl font-semibold text-gray-800">📅 Calendário</h1>
+                        
+                        <!-- Navegação de Meses -->
+                        <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                            <button id="prevMonth" class="p-2 hover:bg-white rounded-md transition-colors" title="Mês anterior">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <span id="currentMonth" class="text-sm font-medium text-gray-700 min-w-[140px] text-center px-2">Janeiro de 2025</span>
+                            <button id="nextMonth" class="p-2 hover:bg-white rounded-md transition-colors" title="Próximo mês">
+                                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <button id="todayBtn" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                            Hoje
+                        </button>
                     </div>
                     
                     <!-- Botões de Auth -->
@@ -153,7 +172,11 @@
                         </button>
                     </div>
                     <div class="p-6 max-h-96 overflow-y-auto">
-                        <p id="modalDate" class="text-sm text-gray-500 mb-4"></p>
+                        <p id="modalDate" class="text-sm text-gray-500 mb-1"></p>
+                        <div id="modalHoliday" class="hidden mb-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                            <span class="text-amber-700 text-sm font-medium">🎉 Feriado: </span>
+                            <span id="modalHolidayName" class="text-amber-800 text-sm font-semibold"></span>
+                        </div>
                         <button id="removeAllMarksBtn" class="mb-3 text-xs text-red-600 hover:text-red-800 underline">Remover todos os marcadores</button>
                         <div id="dayMarkers" class="space-y-2"></div>
                         <div id="dayEmpty" class="text-center py-6">

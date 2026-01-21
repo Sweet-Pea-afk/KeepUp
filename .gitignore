@@ -1,6 +1,9 @@
 # Documentação restrita
 RELATORIO.md
 
+# Arquivos compactados
+*.zip
+
 # Arquivos de sistema
 .DS_Store
 Thumbs.db

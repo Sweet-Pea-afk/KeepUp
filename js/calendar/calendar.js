@@ -118,28 +118,38 @@ export class CalendarManager {
             cell.classList.add('today');
         }
 
+        // Verifica se é feriado
+        const holiday = dataManager.getHolidayForDate(date);
+        if (holiday) {
+            cell.classList.add('is-holiday');
+            cell.setAttribute('data-holiday', holiday.name);
+            cell.setAttribute('data-holiday-name', holiday.name);
+        }
+
+        // Adiciona data para clique
+        const dateKey = dataManager.getDateKey(date);
+        cell.setAttribute('data-date', dateKey);
+
         // Número do dia
         const dayNumber = document.createElement('div');
         dayNumber.className = 'day-number';
         dayNumber.textContent = date.getDate();
         cell.appendChild(dayNumber);
 
-        // Marcações (apenas para o mês atual)
-        if (!isOtherMonth) {
-            const marks = dataManager.getMarksForDate(date);
-            
-            if (marks.length > 0) {
-                cell.classList.add('has-markers');
-                const markersContainer = this.createMarkersContainer(marks);
-                cell.appendChild(markersContainer);
-            }
+        // Marcações - agora permitidas em qualquer dia!
+        const marks = dataManager.getMarksForDate(date);
+        
+        if (marks.length > 0) {
+            cell.classList.add('has-markers');
+            const markersContainer = this.createMarkersContainer(marks);
+            cell.appendChild(markersContainer);
         }
 
         // Accessibility
         cell.setAttribute('role', 'button');
         cell.setAttribute('tabindex', '0');
-        cell.setAttribute('data-date', date.toISOString());
-        cell.setAttribute('aria-label', `Dia ${date.getDate()}, ${date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`);
+        const holidayLabel = holiday ? `, ${holiday.name}` : '';
+        cell.setAttribute('aria-label', `Dia ${date.getDate()}, ${date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}${holidayLabel}`);
 
         grid.appendChild(cell);
     }

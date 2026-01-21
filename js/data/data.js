@@ -13,6 +13,7 @@ export class DataManager {
         this.dayMarks = new Map();         // Marcações do usuário atual
         this.tempColors = new Map();       // Cores temporárias (não logado)
         this.tempMarks = new Map();        // Marcações temporárias (não logado)
+        this.holidays = new Map();         // Feriados carregados da API
         this.loadCurrentUser();
     }
 
@@ -353,10 +354,12 @@ export class DataManager {
 
     getMarksThisWeek() {
         const today = new Date();
-        const weekAgo = new Date(today);
-        weekAgo.setDate(weekAgo.getDate() - 7);
+        // Corrige timezone: usa hora local
+        const weekAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
         return this.getAllMarks().filter(mark => {
-            const d = new Date(mark.date);
+            // Corrige timezone criando data a partir dos componentes
+            const [year, month, day] = mark.date.split('-').map(Number);
+            const d = new Date(year, month - 1, day);
             return d >= weekAgo && d <= today;
         });
     }
@@ -418,6 +421,64 @@ export class DataManager {
             console.warn('Aviso:', e.message);
             return [];
         }
+    }
+
+    // ===========================
+    // Feriados (API e Visualização)
+    // ===========================
+
+    /**
+     * Processa e armazena lista de feriados da API
+     * @param {Array} holidays - Array de feriados da BrasilAPI
+     */
+    setHolidays(holidays) {
+        this.holidays.clear();
+        if (!Array.isArray(holidays)) return;
+        
+        for (const holiday of holidays) {
+            // Formato da API: { date: "2025-01-01", name: "Confraternização Universal", type: "national" }
+            this.holidays.set(holiday.date, {
+                name: holiday.name,
+                type: holiday.type || 'national',
+                date: holiday.date
+            });
+        }
+    }
+
+    /**
+     * Obtém feriado para uma data específica
+     * @param {Date} date - Data
+     * @returns {object|null} Feriado ou null
+     */
+    getHolidayForDate(date) {
+        const dateKey = this.getDateKey(date);
+        return this.holidays.get(dateKey) || null;
+    }
+
+    /**
+     * Obtém todos os feriados de um mês
+     * @param {number} year - Ano
+     * @param {number} month - Mês (0-11)
+     * @returns {Array} Array de feriados
+     */
+    getHolidaysForMonth(year, month) {
+        const monthStr = String(month + 1).padStart(2, '0');
+        const holidays = [];
+        for (const [dateKey, holiday] of this.holidays) {
+            if (dateKey.startsWith(`${year}-${monthStr}`)) {
+                holidays.push(holiday);
+            }
+        }
+        return holidays;
+    }
+
+    /**
+     * Verifica se uma data é feriado
+     * @param {Date} date - Data
+     * @returns {boolean}
+     */
+    isHoliday(date) {
+        return this.holidays.has(this.getDateKey(date));
     }
 }
 
