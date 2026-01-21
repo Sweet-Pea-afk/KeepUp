@@ -265,6 +265,8 @@ export class UIManager {
         const newName = prompt('Novo título da cor:', color.name);
         if (newName && newName.trim()) {
             dataManager.updateColor(colorId, { name: newName.trim() });
+            // Atualiza a UI do calendário para refletir a nova legenda
+            calendarManager.refresh();
             this.renderColorsList();
             this.renderUserColors();
         }
@@ -273,6 +275,8 @@ export class UIManager {
     handleDeleteColor(colorId) {
         if (confirm('Tem certeza que deseja excluir esta cor?')) {
             dataManager.deleteColor(colorId);
+            // Atualiza a UI do calendário para remover as marcações da cor deletada
+            calendarManager.refresh();
             this.renderColorsList();
             this.renderUserColors();
             if (this.selectedColorId === colorId) this.selectedColorId = null;

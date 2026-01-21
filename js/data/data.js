@@ -64,6 +64,7 @@ export class DataManager {
                     this.dayMarks.set(dateKey, new Map(Object.entries(marksObjData)));
                 }
                 this.migrateColors();
+                this.migrateMarks();
             } else {
                 this.userColors = new Map();
                 this.dayMarks = new Map();
@@ -164,6 +165,28 @@ export class DataManager {
         }
     }
 
+    /**
+     * Migra marcações antigas que têm colorName/colorValue para o novo formato
+     * Remove campos desnecessários e mantém apenas colorId
+     */
+    migrateMarks() {
+        let needsSave = false;
+        for (const [dateKey, marksForDate] of this.dayMarks) {
+            for (const [colorId, mark] of marksForDate) {
+                // Verifica se a marcação tem campos que devem ser removidos
+                if (mark.hasOwnProperty('colorName') || mark.hasOwnProperty('colorValue')) {
+                    // Remove campos desnecessários - serão buscados dinamicamente
+                    delete mark.colorName;
+                    delete mark.colorValue;
+                    needsSave = true;
+                }
+            }
+        }
+        if (needsSave) {
+            this.saveMarksToStorage();
+        }
+    }
+
     loadColorsFromStorage() {
         if (this.currentUser && this.currentUser.email) {
             this.loadUserData(this.currentUser.email);
@@ -261,10 +284,9 @@ export class DataManager {
         const color = this.userColors.get(colorId);
         if (!color) throw new Error('Cor não encontrada');
 
+        // Apenas colorId é armazenado - nome e valor são buscados dinamicamente
         const mark = { 
             colorId, 
-            colorName: color.name, 
-            colorValue: color.color, 
             note: note || null,
             createdAt: new Date().toISOString() 
         };
@@ -315,8 +337,10 @@ export class DataManager {
         for (const [colorId, mark] of marksForDate) {
             const color = this.userColors.get(colorId);
             if (color) {
+                // Busca nome e valor dinamicamente da paleta de cores
                 marks.push({ ...mark, colorId, colorName: color.name, colorValue: color.color });
             } else {
+                // Fallback se a cor foi removida
                 marks.push({ ...mark, colorId, colorName: 'Cor removida', colorValue: '#9ca3af' });
             }
         }
@@ -330,7 +354,10 @@ export class DataManager {
             if (dateKey.startsWith(`${year}-${monthStr}`)) {
                 for (const [colorId, mark] of marksForDate) {
                     const color = this.userColors.get(colorId);
-                    if (color) marks.push({ date: dateKey, colorId, colorName: color.name, colorValue: color.color });
+                    if (color) {
+                        // Busca nome e valor dinamicamente da paleta de cores
+                        marks.push({ date: dateKey, colorId, colorName: color.name, colorValue: color.color });
+                    }
                 }
             }
         }
@@ -407,7 +434,10 @@ export class DataManager {
         for (const [dateKey, marksForDate] of this.dayMarks) {
             for (const [colorId, mark] of marksForDate) {
                 const color = this.userColors.get(colorId);
-                if (color) marks.push({ date: dateKey, colorId, colorName: color.name, colorValue: color.color });
+                if (color) {
+                    // Busca nome e valor dinamicamente da paleta de cores
+                    marks.push({ date: dateKey, colorId, colorName: color.name, colorValue: color.color });
+                }
             }
         }
         return marks;
