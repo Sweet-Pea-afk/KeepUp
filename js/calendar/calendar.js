@@ -300,6 +300,17 @@ export class CalendarManager {
     refresh() {
         this.render();
     }
+
+    /**
+     * Limpa a renderização do calendário
+     * Útil para logout ou reset de dados
+     */
+    clearRender() {
+        const grid = document.getElementById('calendarGrid');
+        if (grid) {
+            grid.innerHTML = '';
+        }
+    }
 }
 
 // Exporta uma instância única do gerenciador de calendário

@@ -342,8 +342,8 @@ export class UIManager {
         }
         this.dayEmpty.classList.add('hidden');
 
-        // Mostra seção de anotações se houver pelo menos uma marcação
-        this.addNoteSection?.classList.remove('hidden');
+        // Nota section stays hidden until pencil is clicked
+        this.addNoteSection?.classList.add('hidden');
 
         this.dayMarkers.innerHTML = marks.map(mark => `
             <div class="day-mark-item" style="border-left: 4px solid ${mark.colorValue}">
@@ -353,7 +353,7 @@ export class UIManager {
                     ${mark.note ? `<p class="text-xs text-gray-500 mt-1">📝 ${mark.note}</p>` : ''}
                 </div>
                 <button class="add-note-btn text-xs text-primary-600 hover:text-primary-800 ml-2" 
-                    data-color-id="${mark.colorId}" title="Adicionar anotação">
+                    data-color-id="${mark.colorId}" title="Adicionar/editar anotação">
                     ✏️
                 </button>
             </div>
@@ -375,6 +375,8 @@ export class UIManager {
         this.noteColorId = colorId;
         const currentNote = dataManager.getMarkNote(this.selectedDate, colorId);
         this.noteInput.value = currentNote || '';
+        // Show note section when pencil is clicked
+        this.addNoteSection?.classList.remove('hidden');
         this.noteInput.focus();
         this.noteInput.placeholder = 'Digite uma anotação para esta marcação...';
     }

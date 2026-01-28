@@ -1,5 +1,3 @@
-// Módulo de Dados - Gerenciamento de cores, marcações e APIs por usuário
-
 import { generateId, generateStorageKey, COLOR_MAP } from '../utils/utils.js';
 
 // Chaves do localStorage
@@ -409,10 +407,6 @@ export class DataManager {
         localStorage.removeItem(CURRENT_USER_KEY);
     }
 
-    // ===========================
-    // Array Methods (Req. 2)
-    // ===========================
-
     getColorsSortedByName() {
         return this.getAllColors().sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
     }
@@ -453,7 +447,7 @@ export class DataManager {
     }
 
     // ===========================
-    // APIs HTML5 (Req. 5, 6, 7)
+    // APIs
     // ===========================
 
     updateHistoryState(year, month) {
@@ -473,7 +467,7 @@ export class DataManager {
 
     loadHolidaysWithPromise(year) {
         return new Promise((resolve, reject) => {
-            fetch(`https://brasilapi.com.br/api/feriados/v1/${year}`)
+            fetch(`https://api.invertexto.com/v1/holidays/${year}?token=24373|nxBaHkHrd9Vzj1sZuLvnAiTgKi4mzYxy&state=TO`)
                 .then(r => { if (!r.ok) throw new Error('Falha'); return r.json(); })
                 .then(d => resolve(d))
                 .catch(e => reject(e));
@@ -482,7 +476,7 @@ export class DataManager {
 
     async loadHolidaysWithAsync(year) {
         try {
-            const r = await fetch(`https://brasilapi.com.br/api/feriados/v1/${year}`);
+            const r = await fetch(`https://api.invertexto.com/v1/holidays/${year}?token=24373|nxBaHkHrd9Vzj1sZuLvnAiTgKi4mzYxy&state=TO`);
             if (!r.ok) throw new Error(`Erro: ${r.status}`);
             return await r.json();
         } catch (e) {
@@ -495,26 +489,26 @@ export class DataManager {
     // Feriados (API e Visualização)
     // ===========================
 
-    // Feriados estáticos como fallback (Brasil - 2025)
-    FALLBACK_HOLIDAYS_2025 = [
-        { date: "2025-01-01", name: "Confraternização Universal", type: "national" },
-        { date: "2025-03-01", name: "Carnaval", type: "national" },
-        { date: "2025-03-02", name: "Carnaval", type: "national" },
-        { date: "2025-03-03", name: "Quarta-feira de Cinzas", type: "national" },
-        { date: "2025-04-18", name: "Sexta-feira Santa", type: "national" },
-        { date: "2025-04-20", name: "Páscoa", type: "national" },
-        { date: "2025-04-21", name: "Tiradentes", type: "national" },
-        { date: "2025-05-01", name: "Dia do Trabalho", type: "national" },
-        { date: "2025-09-07", name: "Independência do Brasil", type: "national" },
-        { date: "2025-10-12", name: "Nossa Senhora Aparecida", type: "national" },
-        { date: "2025-10-15", name: "Dia do Professor", type: "optional" },
-        { date: "2025-10-20", name: "Dia do Policial Civil", type: "optional" },
-        { date: "2025-11-02", name: "Finados", type: "national" },
-        { date: "2025-11-15", name: "Proclamação da República", type: "national" },
-        { date: "2025-11-20", name: "Consciência Negra", type: "national" },
-        { date: "2025-12-24", name: "Véspera de Natal", type: "optional" },
-        { date: "2025-12-25", name: "Natal", type: "national" },
-        { date: "2025-12-31", name: "Véspera de Ano Novo", type: "optional" }
+    // Feriados estáticos como fallback (Brasil - 2026)
+    FALLBACK_HOLIDAYS_2026 = [
+        { date: "2026-01-01", name: "Confraternização Universal", type: "national" },
+        { date: "2026-02-17", name: "Carnaval", type: "national" },
+        { date: "2026-02-18", name: "Carnaval", type: "national" },
+        { date: "2026-02-19", name: "Quarta-feira de Cinzas", type: "national" },
+        { date: "2026-04-03", name: "Sexta-feira Santa", type: "national" },
+        { date: "2026-04-05", name: "Páscoa", type: "national" },
+        { date: "2026-04-21", name: "Tiradentes", type: "national" },
+        { date: "2026-05-01", name: "Dia do Trabalho", type: "national" },
+        { date: "2026-09-07", name: "Independência do Brasil", type: "national" },
+        { date: "2026-10-12", name: "Nossa Senhora Aparecida", type: "national" },
+        { date: "2026-10-15", name: "Dia do Professor", type: "optional" },
+        { date: "2026-10-20", name: "Dia do Policial Civil", type: "optional" },
+        { date: "2026-11-02", name: "Finados", type: "national" },
+        { date: "2026-11-15", name: "Proclamação da República", type: "national" },
+        { date: "2026-11-20", name: "Consciência Negra", type: "national" },
+        { date: "2026-12-24", name: "Véspera de Natal", type: "optional" },
+        { date: "2026-12-25", name: "Natal", type: "national" },
+        { date: "2026-12-31", name: "Véspera de Ano Novo", type: "optional" }
     ];
 
     /**
@@ -543,7 +537,7 @@ export class DataManager {
     async loadHolidaysWithFallback(year) {
         try {
             // Tenta carregar da API
-            const response = await fetch(`https://brasilapi.com.br/api/feriados/v1/${year}`);
+            const response = await fetch(`https://api.invertexto.com/v1/holidays/${year}?token=24373|nxBaHkHrd9Vzj1sZuLvnAiTgKi4mzYxy&state=TO`);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
@@ -553,9 +547,9 @@ export class DataManager {
         } catch (error) {
             console.warn(`API de feriados falhou (${error.message}), usando dados de fallback`);
             // Usa dados de fallback
-            const fallbackYear = year === 2025 ? this.FALLBACK_HOLIDAYS_2025 : this.FALLBACK_HOLIDAYS_2025.map(h => ({
+            const fallbackYear = year === 2026 ? this.FALLBACK_HOLIDAYS_2026 : this.FALLBACK_HOLIDAYS_2026.map(h => ({
                 ...h,
-                date: h.date.replace('2025', String(year))
+                date: h.date.replace('2026', String(year))
             }));
             this.setHolidays(fallbackYear);
             return fallbackYear;
