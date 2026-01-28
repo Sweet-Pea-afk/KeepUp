@@ -74,7 +74,7 @@ class CalendarApp {
             return;
         }
 
-        // Hide app content first to prevent showing old/anonymous data
+        // Oculta conteúdo do app antes para evitar mostrar dados antigos
         document.getElementById('appContent')?.classList.add('hidden');
         
         // Login do usuário
@@ -84,7 +84,7 @@ class CalendarApp {
 
     handleSkipLogin() {
         // Continuar sem login - usa dados temporários
-        // Clear calendar first to prevent showing old user data
+        // Limpa calendário antes para evitar mostrar dados do usuário anterior
         calendarManager.clearRender();
         
         dataManager.skipLogin();
@@ -95,20 +95,20 @@ class CalendarApp {
         // Faz logout - volta para modo anônimo
         dataManager.logout();
         
-        // Clear calendar UI immediately to prevent showing old data
+        // Limpa UI do calendário imediatamente para evitar mostrar dados antigos
         calendarManager.clearRender();
         
-        // Hide app content first, then show login
+        // Oculta conteúdo do app e exibe tela de login
         document.getElementById('appContent')?.classList.add('hidden');
         document.getElementById('loginScreen')?.classList.remove('hidden');
         
-        // Update auth buttons
+        // Atualiza botões de autenticação
         const logoutBtn = document.getElementById('logoutBtn');
         const loginBtn = document.getElementById('loginBtn');
         if (logoutBtn) logoutBtn.classList.add('hidden');
         if (loginBtn) loginBtn.classList.remove('hidden');
         
-        // Clear login form
+        // Limpa formulário de login
         document.getElementById('loginError')?.classList.add('hidden');
         document.getElementById('loginForm')?.reset();
     }

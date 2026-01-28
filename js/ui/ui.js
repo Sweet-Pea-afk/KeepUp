@@ -342,7 +342,7 @@ export class UIManager {
         }
         this.dayEmpty.classList.add('hidden');
 
-        // Nota section stays hidden until pencil is clicked
+        // Seção de anotação permanece oculta até clicar no lápis
         this.addNoteSection?.classList.add('hidden');
 
         this.dayMarkers.innerHTML = marks.map(mark => `
@@ -359,7 +359,7 @@ export class UIManager {
             </div>
         `).join('');
 
-        // Bind eventos para botões de anotação
+        // Vincula eventos para botões de anotação
         this.dayMarkers.querySelectorAll('.add-note-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -375,7 +375,7 @@ export class UIManager {
         this.noteColorId = colorId;
         const currentNote = dataManager.getMarkNote(this.selectedDate, colorId);
         this.noteInput.value = currentNote || '';
-        // Show note section when pencil is clicked
+        // Exibe seção de anotação quando o lápis é clicado
         this.addNoteSection?.classList.remove('hidden');
         this.noteInput.focus();
         this.noteInput.placeholder = 'Digite uma anotação para esta marcação...';
